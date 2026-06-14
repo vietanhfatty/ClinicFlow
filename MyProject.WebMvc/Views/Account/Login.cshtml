@@ -179,6 +179,26 @@
             border-radius: 12px;
             font-size: 14px;
         }
+
+        .btn-register-patient {
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            background: rgba(255, 255, 255, 0.02) !important;
+            border-radius: 12px;
+            color: #cbd5e1 !important;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-register-patient:hover {
+            border-color: #3b82f6 !important;
+            background: rgba(59, 130, 246, 0.1) !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
     </style>
 </head>
 <body>
@@ -223,6 +243,15 @@
                     <button type="submit" class="btn btn-login">
                         Sign In <i class="fa-solid fa-arrow-right-to-bracket ms-2"></i>
                     </button>
+                </div>
+
+                <div class="text-center mt-4 pt-3 border-top border-secondary border-opacity-25">
+                    <span class="text-slate-400 small d-block mb-3" style="color: #94a3b8; font-size: 13px;">Don't have an account?</span>
+                    <div class="d-grid">
+                        <a asp-action="Register" class="btn btn-register-patient">
+                            <i class="fa-solid fa-user-plus me-2"></i> Register as Patient
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>

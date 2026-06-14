@@ -1,4 +1,4 @@
-USE HospitalManagementDB;
+USE HospitalManagementDB_V1;
 GO
 
 -- Clear existing data (in reverse order of dependencies)

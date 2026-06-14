@@ -1,0 +1,309 @@
+@model IEnumerable<MyProject.Application.DTOs.DoctorDto>
+
+@{
+    ViewData["Title"] = "Doctor Management";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-slate-800 fw-bold">Doctor Management</h1>
+            <p class="text-muted small mb-0">Search, register, and manage doctor profiles and system credentials.</p>
+        </div>
+        <button type="button" class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createDoctorModal">
+            <i class="fa-solid fa-user-plus"></i> New Doctor Registration
+        </button>
+    </div>
+
+    <!-- Advanced Search Panel -->
+    <div class="modern-card" style="padding: 20px;">
+        <h6 class="fw-bold text-slate-700 mb-3"><i class="fa-solid fa-sliders me-2"></i>Advanced Search</h6>
+        <form method="get" asp-action="Index">
+            <div class="search-card-filters">
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Doctor Name</label>
+                    <input type="text" name="searchName" value="@ViewBag.SearchName" class="form-control-custom" placeholder="e.g. Fleming" />
+                </div>
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Specialization</label>
+                    <input type="text" name="searchSpecialization" value="@ViewBag.SearchSpecialization" class="form-control-custom" placeholder="e.g. Cardiology" />
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn-primary-custom" style="padding: 10px 18px;">
+                        <i class="fa-solid fa-magnifying-glass"></i> Search
+                    </button>
+                    <a asp-action="Index" class="btn-secondary-custom" style="padding: 10px 18px;">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Doctors List Table -->
+    <div class="modern-card modern-table-card">
+        <div class="modern-table-header">
+            <h5 class="modern-table-title">Registered Doctors (@Model.Count())</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th style="width: 280px;">Doctor Name / Username</th>
+                        <th>Specialization</th>
+                        <th>Experience</th>
+                        <th>Phone</th>
+                        <th>Description</th>
+                        <th class="text-end" style="width: 150px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-user-md-slash fa-2x mb-3 text-secondary"></i>
+                                <p class="mb-0">No doctors matched the criteria.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            var initials = "DR";
+                            if (!string.IsNullOrEmpty(item.FullName))
+                            {
+                                var parts = item.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                                if (parts.Length > 1)
+                                {
+                                    initials = (parts[0][0].ToString() + parts[parts.Length - 1][0].ToString()).ToUpper();
+                                }
+                                else if (parts.Length > 0)
+                                {
+                                    initials = parts[0][0].ToString().ToUpper();
+                                }
+                            }
+
+                            var avatarClasses = new[] { "avatar-blue", "avatar-indigo", "avatar-purple", "avatar-pink", "avatar-emerald", "avatar-rose" };
+                            var avatarClass = avatarClasses[Math.Abs(item.DoctorId) % avatarClasses.Length];
+
+                            // Escape for JS
+                            var safeName = item.FullName.Replace("'", "\\'").Replace("\"", "&quot;");
+                            var safeSpecialization = item.Specialization.Replace("'", "\\'");
+                            var safePhone = (item.Phone ?? "").Replace("'", "\\'");
+                            var safeDescription = (item.Description ?? "").Replace("'", "\\'").Replace("\n", " ").Replace("\r", "");
+                            var safeUsername = item.Username.Replace("'", "\\'");
+
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-circle @avatarClass">@initials</div>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold text-slate-800">Dr. @item.FullName</span>
+                                            <span class="text-muted" style="font-size: 11px;">@@@item.Username</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="modern-badge badge-active font-monospace">@item.Specialization</span>
+                                </td>
+                                <td>
+                                    <span class="fw-medium text-slate-700">@item.ExperienceYears Years</span>
+                                </td>
+                                <td>
+                                    <span class="text-slate-600">@(string.IsNullOrEmpty(item.Phone) ? "N/A" : item.Phone)</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted small text-truncate d-inline-block" style="max-width: 300px;" title="@item.Description">
+                                        @(string.IsNullOrEmpty(item.Description) ? "No description provided." : item.Description)
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex align-items-center justify-content-end gap-2">
+                                        <button type="button" class="table-action-icon" title="Edit Doctor"
+                                                onclick="openEditDoctorModal(@item.DoctorId, '@safeName', '@safeSpecialization', @item.ExperienceYears, '@safePhone', '@safeDescription')">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <button type="button" class="table-action-icon danger-hover" title="Delete Doctor"
+                                                onclick="openDeleteDoctorModal(@item.DoctorId, '@safeName')">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-wrapper">
+            <span class="pagination-info">Showing 1 to @Model.Count() of @Model.Count() entries</span>
+            <div class="pagination-controls">
+                <a class="pagination-btn"><i class="fa-solid fa-angle-left"></i></a>
+                <a class="pagination-btn active">1</a>
+                <a class="pagination-btn"><i class="fa-solid fa-angle-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Doctor Modal -->
+<div class="modal fade" id="createDoctorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white rounded-top-4">
+                <h5 class="modal-title"><i class="fa-solid fa-user-plus me-2"></i>Register New Doctor & Provision Account</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Full Name</label>
+                            <input type="text" name="FullName" class="form-control rounded-3" placeholder="e.g. John Doe" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Phone Number</label>
+                            <input type="text" name="Phone" class="form-control rounded-3" placeholder="e.g. 0912345678" />
+                        </div>
+                    </div>
+                    
+                    <div class="border-top my-3 pt-3">
+                        <h6 class="fw-bold text-slate-700 mb-3"><i class="fa-solid fa-key me-2"></i>System Account Credentials</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Username</label>
+                                <input type="text" name="Username" class="form-control rounded-3" placeholder="e.g. johndoe" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Password</label>
+                                <input type="password" name="Password" class="form-control rounded-3" placeholder="Min 6 characters" required />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-top my-3 pt-3">
+                        <h6 class="fw-bold text-slate-700 mb-3"><i class="fa-solid fa-user-md me-2"></i>Professional Details</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Specialization</label>
+                                <input type="text" name="Specialization" class="form-control rounded-3" placeholder="e.g. Cardiology" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Experience Years</label>
+                                <input type="number" name="ExperienceYears" class="form-control rounded-3" min="0" max="100" placeholder="e.g. 5" required />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Short Description / Bio</label>
+                            <textarea name="Description" class="form-control rounded-3" rows="3" placeholder="Doctor's biography, achievements..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="fa-solid fa-user-plus me-1"></i> Provision & Register
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Doctor Modal -->
+<div class="modal fade" id="editDoctorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-warning text-dark rounded-top-4">
+                <h5 class="modal-title"><i class="fa-solid fa-user-pen me-2"></i>Edit Doctor Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editDoctorForm" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Full Name</label>
+                            <input type="text" name="FullName" id="editDoctorFullName" class="form-control rounded-3" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Phone Number</label>
+                            <input type="text" name="Phone" id="editDoctorPhone" class="form-control rounded-3" />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Specialization</label>
+                            <input type="text" name="Specialization" id="editDoctorSpecialization" class="form-control rounded-3" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Experience Years</label>
+                            <input type="number" name="ExperienceYears" id="editDoctorExperience" class="form-control rounded-3" min="0" max="100" required />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Short Description / Bio</label>
+                        <textarea name="Description" id="editDoctorDescription" class="form-control rounded-3" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4">
+                        <i class="fa-solid fa-save me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal fade" id="deleteDoctorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-danger text-white rounded-top-4">
+                <h5 class="modal-title"><i class="fa-solid fa-trash-alt me-2"></i>Delete Doctor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <i class="fa-solid fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                <p class="mb-1">Are you sure you want to delete:</p>
+                <p class="fw-bold fs-6" id="deleteDoctorName"></p>
+                <p class="text-muted small">This will also delete the doctor's system user account. This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteDoctorForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">
+                        <i class="fa-solid fa-trash-alt me-1"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openEditDoctorModal(id, name, specialization, experience, phone, description) {
+            document.getElementById('editDoctorFullName').value = name;
+            document.getElementById('editDoctorSpecialization').value = specialization;
+            document.getElementById('editDoctorExperience').value = experience;
+            document.getElementById('editDoctorPhone').value = phone;
+            document.getElementById('editDoctorDescription').value = description;
+            document.getElementById('editDoctorForm').action = '/Doctors/Edit/' + id;
+            new bootstrap.Modal(document.getElementById('editDoctorModal')).show();
+        }
+
+        function openDeleteDoctorModal(id, name) {
+            document.getElementById('deleteDoctorName').textContent = "Dr. " + name;
+            document.getElementById('deleteDoctorForm').action = '/Doctors/Delete/' + id;
+            new bootstrap.Modal(document.getElementById('deleteDoctorModal')).show();
+        }
+    </script>
+}

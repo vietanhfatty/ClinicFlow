@@ -4691,23 +4691,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\admin\\.nuget\\packages\\": {},
-    "D:\\Visual Studio\\Share\\NuGetPackages": {}
+    "C:\\Users\\asus\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\PRN212_demo\\232\\Project_PRN232\\MyProject.Domain\\MyProject.Domain.csproj",
+      "projectUniqueName": "C:\\Users\\asus\\Desktop\\PRN232\\PRN232_PRJ\\MyProject.Domain\\MyProject.Domain.csproj",
       "projectName": "MyProject.Domain",
-      "projectPath": "D:\\PRN212_demo\\232\\Project_PRN232\\MyProject.Domain\\MyProject.Domain.csproj",
-      "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-      "outputPath": "D:\\PRN212_demo\\232\\Project_PRN232\\MyProject.Domain\\obj\\",
+      "projectPath": "C:\\Users\\asus\\Desktop\\PRN232\\PRN232_PRJ\\MyProject.Domain\\MyProject.Domain.csproj",
+      "packagesPath": "C:\\Users\\asus\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\asus\\Desktop\\PRN232\\PRN232_PRJ\\MyProject.Domain\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "D:\\Visual Studio\\Share\\NuGetPackages"
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\asus\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -4771,7 +4771,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.312/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.315/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

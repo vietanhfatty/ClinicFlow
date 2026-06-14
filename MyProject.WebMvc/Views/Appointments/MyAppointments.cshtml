@@ -126,6 +126,26 @@
                                             </button>
                                         </form>
                                     }
+                                    else if (item.Status == "Confirmed")
+                                    {
+                                        <form asp-action="StartExamination" method="post" class="d-inline-block me-1">
+                                            <input type="hidden" name="id" value="@item.AppointmentId" />
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">
+                                                <i class="fa-solid fa-play me-1"></i> Start Exam
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (item.Status == "InProgress")
+                                    {
+                                        <form asp-action="Complete" method="post" class="d-inline-block me-1">
+                                            <input type="hidden" name="id" value="@item.AppointmentId" />
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
+                                                <i class="fa-solid fa-check me-1"></i> Complete
+                                            </button>
+                                        </form>
+                                    }
                                     <a asp-action="Details" asp-route-id="@item.AppointmentId" class="btn btn-sm btn-outline-info rounded-pill px-3">
                                         <i class="fa-solid fa-info-circle me-1"></i> Details
                                     </a>

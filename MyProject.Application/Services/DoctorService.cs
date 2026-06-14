@@ -87,7 +87,13 @@ public class DoctorService
 
     public async Task DeleteAsync(int id)
     {
-        await _repo.DeleteAsync(id);
+        var doctor = await _repo.GetByIdAsync(id);
+        if (doctor != null)
+        {
+            var userId = doctor.UserId;
+            await _repo.DeleteAsync(id);
+            await _userRepo.DeleteAsync(userId);
+        }
     }
 
     private DoctorDto MapToDto(Doctor d)

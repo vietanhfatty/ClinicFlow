@@ -163,4 +163,21 @@ public class PatientPortalController : Controller
             return View(request);
         }
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetBookedTimes(int doctorId, string date)
+    {
+        if (!DateOnly.TryParse(date, out var dateOnly))
+        {
+            return BadRequest("Invalid date format.");
+        }
+
+        var appointments = await _appointmentService.GetAllAsync();
+        var bookedTimes = appointments
+            .Where(a => a.DoctorId == doctorId && a.AppointmentDate == dateOnly && !a.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase))
+            .Select(a => a.AppointmentTime.ToString())
+            .ToList();
+
+        return Json(bookedTimes);
+    }
 }

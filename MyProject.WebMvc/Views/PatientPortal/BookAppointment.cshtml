@@ -93,3 +93,58 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            function updateAvailableTimes() {
+                var doctorId = $('#DoctorId').val();
+                var date = $('#AppointmentDate').val();
+                
+                if (!doctorId || !date) {
+                    return;
+                }
+
+                $.ajax({
+                    url: '/PatientPortal/GetBookedTimes',
+                    type: 'GET',
+                    data: { doctorId: doctorId, date: date },
+                    success: function(bookedTimes) {
+                        // Reset all options to visible and enabled
+                        $('#AppointmentTime option').each(function() {
+                            $(this).prop('disabled', false).show();
+                        });
+
+                        var currentSelected = $('#AppointmentTime').val();
+                        var shouldResetSelection = false;
+
+                        bookedTimes.forEach(function(time) {
+                            var optionValue = time;
+                            // Normalize format (e.g. 9:00:00 -> 09:00:00)
+                            if (time && time.indexOf(':') === 1) {
+                                optionValue = "0" + time;
+                            }
+                            
+                            var option = $('#AppointmentTime option[value="' + optionValue + '"]');
+                            if (option.length) {
+                                option.prop('disabled', true).hide();
+                                if (currentSelected === optionValue) {
+                                    shouldResetSelection = true;
+                                }
+                            }
+                        });
+
+                        if (shouldResetSelection) {
+                            $('#AppointmentTime').val('');
+                        }
+                    }
+                });
+            }
+
+            $('#DoctorId, #AppointmentDate').change(updateAvailableTimes);
+            
+            // Trigger on load if values exist
+            updateAvailableTimes();
+        });
+    </script>
+}

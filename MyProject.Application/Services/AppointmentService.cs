@@ -46,6 +46,30 @@ public class AppointmentService
         var doctor = await _doctorRepo.GetByIdAsync(req.DoctorId)
             ?? throw new KeyNotFoundException($"Doctor with ID {req.DoctorId} not found");
 
+        // Check for double booking
+        var existingAppointments = await _repo.GetAllAsync();
+        var isDoctorBusy = existingAppointments.Any(a => 
+            a.DoctorId == req.DoctorId && 
+            a.AppointmentDate == req.AppointmentDate && 
+            a.AppointmentTime == req.AppointmentTime && 
+            !a.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase));
+            
+        if (isDoctorBusy)
+        {
+            throw new ArgumentException("Bác sĩ đã có lịch hẹn vào ngày và giờ này. Vui lòng chọn khung giờ khác.");
+        }
+
+        var isPatientBusy = existingAppointments.Any(a => 
+            a.PatientId == req.PatientId && 
+            a.AppointmentDate == req.AppointmentDate && 
+            a.AppointmentTime == req.AppointmentTime && 
+            !a.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase));
+
+        if (isPatientBusy)
+        {
+            throw new ArgumentException("Bạn đã có lịch hẹn khác vào ngày và giờ này. Vui lòng chọn khung giờ khác.");
+        }
+
         var appointment = new Appointment
         {
             PatientId = req.PatientId,
@@ -72,6 +96,32 @@ public class AppointmentService
         // Check doctor exists
         _ = await _doctorRepo.GetByIdAsync(req.DoctorId)
             ?? throw new KeyNotFoundException($"Doctor with ID {req.DoctorId} not found");
+
+        // Check for double booking
+        var existingAppointments = await _repo.GetAllAsync();
+        var isDoctorBusy = existingAppointments.Any(a => 
+            a.AppointmentId != id &&
+            a.DoctorId == req.DoctorId && 
+            a.AppointmentDate == req.AppointmentDate && 
+            a.AppointmentTime == req.AppointmentTime && 
+            !a.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase));
+            
+        if (isDoctorBusy)
+        {
+            throw new ArgumentException("Bác sĩ đã có lịch hẹn vào ngày và giờ này. Vui lòng chọn khung giờ khác.");
+        }
+
+        var isPatientBusy = existingAppointments.Any(a => 
+            a.AppointmentId != id &&
+            a.PatientId == req.PatientId && 
+            a.AppointmentDate == req.AppointmentDate && 
+            a.AppointmentTime == req.AppointmentTime && 
+            !a.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase));
+
+        if (isPatientBusy)
+        {
+            throw new ArgumentException("Bạn đã có lịch hẹn khác vào ngày và giờ này. Vui lòng chọn khung giờ khác.");
+        }
 
         appointment.PatientId = req.PatientId;
         appointment.DoctorId = req.DoctorId;
