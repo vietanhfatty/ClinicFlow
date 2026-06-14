@@ -21,10 +21,8 @@ public class MedicalRecordRepository : IMedicalRecordRepository
         return await _context.MedicalRecords
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Patient)
-                    .ThenInclude(p => p.User)
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Doctor)
-                    .ThenInclude(d => d.User)
             .Include(mr => mr.Prescriptions)
             .ToListAsync();
     }
@@ -34,10 +32,8 @@ public class MedicalRecordRepository : IMedicalRecordRepository
         return await _context.MedicalRecords
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Patient)
-                    .ThenInclude(p => p.User)
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Doctor)
-                    .ThenInclude(d => d.User)
             .Include(mr => mr.Prescriptions)
             .FirstOrDefaultAsync(mr => mr.MedicalRecordId == id);
     }
@@ -47,10 +43,8 @@ public class MedicalRecordRepository : IMedicalRecordRepository
         return await _context.MedicalRecords
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Patient)
-                    .ThenInclude(p => p.User)
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Doctor)
-                    .ThenInclude(d => d.User)
             .Include(mr => mr.Prescriptions)
             .FirstOrDefaultAsync(mr => mr.AppointmentId == appointmentId);
     }
@@ -60,10 +54,8 @@ public class MedicalRecordRepository : IMedicalRecordRepository
         return await _context.MedicalRecords
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Patient)
-                    .ThenInclude(p => p.User)
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Doctor)
-                    .ThenInclude(d => d.User)
             .Include(mr => mr.Prescriptions)
             .Where(mr => mr.Appointment.PatientId == patientId)
             .ToListAsync();

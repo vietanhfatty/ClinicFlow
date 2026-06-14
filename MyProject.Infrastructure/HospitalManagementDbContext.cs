@@ -23,6 +23,8 @@ public partial class HospitalManagementDbContext : DbContext
 
     public virtual DbSet<Patient> Patients { get; set; }
 
+    public virtual DbSet<Staff> Staffs { get; set; }
+
     public virtual DbSet<Appointment> Appointments { get; set; }
 
     public virtual DbSet<MedicalRecord> MedicalRecords { get; set; }
@@ -55,10 +57,8 @@ public partial class HospitalManagementDbContext : DbContext
             entity.HasIndex(e => e.Username, "UQ__Users__Username").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("UserId");
-            entity.Property(e => e.FullName).HasMaxLength(100).HasColumnName("FullName");
             entity.Property(e => e.Username).HasMaxLength(100).IsUnicode(false).HasColumnName("Username");
             entity.Property(e => e.PasswordHash).HasMaxLength(255).HasColumnName("PasswordHash");
-            entity.Property(e => e.Phone).HasMaxLength(20).IsUnicode(false).HasColumnName("Phone");
             entity.Property(e => e.RoleId).HasColumnName("RoleId");
             entity.Property(e => e.IsActive).HasDefaultValue(true).HasColumnName("IsActive");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())").HasColumnType("datetime").HasColumnName("CreatedAt");
@@ -74,39 +74,40 @@ public partial class HospitalManagementDbContext : DbContext
         {
             entity.ToTable("Doctors");
 
-            entity.HasIndex(e => e.UserId, "UQ__Doctors__UserId").IsUnique();
-
             entity.Property(e => e.DoctorId).HasColumnName("DoctorId");
-            entity.Property(e => e.UserId).HasColumnName("UserId");
+            entity.Property(e => e.FullName).HasMaxLength(100).HasColumnName("FullName");
+            entity.Property(e => e.Phone).HasMaxLength(20).IsUnicode(false).HasColumnName("Phone");
+            entity.Property(e => e.Email).HasMaxLength(100).IsUnicode(false).HasColumnName("Email");
             entity.Property(e => e.Specialization).HasMaxLength(100).HasColumnName("Specialization");
             entity.Property(e => e.ExperienceYears).HasDefaultValue(0).HasColumnName("ExperienceYears");
             entity.Property(e => e.Description).HasMaxLength(1000).HasColumnName("Description");
-
-            entity.HasOne(d => d.User).WithOne(p => p.Doctor)
-                .HasForeignKey<Doctor>(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Doctors_Users");
         });
 
         modelBuilder.Entity<Patient>(entity =>
         {
             entity.ToTable("Patients");
 
-            entity.HasIndex(e => e.UserId, "UQ__Patients__UserId").IsUnique();
-
             entity.Property(e => e.PatientId).HasColumnName("PatientId");
-            entity.Property(e => e.UserId).HasColumnName("UserId");
+            entity.Property(e => e.FullName).HasMaxLength(100).HasColumnName("FullName");
+            entity.Property(e => e.Phone).HasMaxLength(20).IsUnicode(false).HasColumnName("Phone");
             entity.Property(e => e.DateOfBirth).HasColumnName("DateOfBirth");
             entity.Property(e => e.Gender).HasMaxLength(10).HasColumnName("Gender");
             entity.Property(e => e.Address).HasMaxLength(255).HasColumnName("Address");
             entity.Property(e => e.BloodType).HasMaxLength(10).HasColumnName("BloodType");
             entity.Property(e => e.EmergencyContactName).HasMaxLength(100).HasColumnName("EmergencyContactName");
             entity.Property(e => e.EmergencyContactPhone).HasMaxLength(20).IsUnicode(false).HasColumnName("EmergencyContactPhone");
+        });
 
-            entity.HasOne(d => d.User).WithOne(p => p.Patient)
-                .HasForeignKey<Patient>(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Patients_Users");
+        modelBuilder.Entity<Staff>(entity =>
+        {
+            entity.ToTable("Staff");
+
+            entity.Property(e => e.StaffId).HasColumnName("StaffId");
+            entity.Property(e => e.FullName).HasMaxLength(100).HasColumnName("FullName");
+            entity.Property(e => e.Phone).HasMaxLength(20).IsUnicode(false).HasColumnName("Phone");
+            entity.Property(e => e.Email).HasMaxLength(100).IsUnicode(false).HasColumnName("Email");
+            entity.Property(e => e.Position).HasMaxLength(100).HasColumnName("Position");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())").HasColumnType("datetime").HasColumnName("CreatedAt");
         });
 
         modelBuilder.Entity<Appointment>(entity =>
@@ -116,6 +117,7 @@ public partial class HospitalManagementDbContext : DbContext
             entity.Property(e => e.AppointmentId).HasColumnName("AppointmentId");
             entity.Property(e => e.PatientId).HasColumnName("PatientId");
             entity.Property(e => e.DoctorId).HasColumnName("DoctorId");
+            entity.Property(e => e.StaffId).HasColumnName("StaffId");
             entity.Property(e => e.AppointmentDate).HasColumnName("AppointmentDate");
             entity.Property(e => e.AppointmentTime).HasColumnName("AppointmentTime");
             entity.Property(e => e.Reason).HasMaxLength(500).HasColumnName("Reason");
@@ -131,6 +133,10 @@ public partial class HospitalManagementDbContext : DbContext
                 .HasForeignKey(d => d.PatientId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Appointments_Patients");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.Appointments)
+                .HasForeignKey(d => d.StaffId)
+                .HasConstraintName("FK_Appointments_Staff");
         });
 
         modelBuilder.Entity<MedicalRecord>(entity =>

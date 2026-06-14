@@ -954,7 +954,7 @@
               "RelativeDocumentMoniker": "MyProject.WebMvc\\Views\\Appointments\\MySchedule.cshtml",
               "ToolTip": "D:\\PRN212_demo\\232\\Project_PRN232\\MyProject.WebMvc\\Views\\Appointments\\MySchedule.cshtml",
               "RelativeToolTip": "MyProject.WebMvc\\Views\\Appointments\\MySchedule.cshtml",
-              "ViewState": "AgIAAHQBAAAAAAAAAAAkwLkBAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAHQBAAAAAAAAAAAkwH0BAAA0AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-06-10T18:02:46.195Z",
               "EditorCaption": ""
@@ -969,8 +969,7 @@
               "RelativeToolTip": "MyProject.WebMvc\\Views\\Home\\Index.cshtml",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAAA0AAAAHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-08T02:18:19.791Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-08T02:18:19.791Z"
             },
             {
               "$type": "Document",

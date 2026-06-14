@@ -17,17 +17,20 @@ namespace MyProject.WebMvc.Controllers
         private readonly PatientService _patientService;
         private readonly IDoctorRepository _doctorRepo;
         private readonly AppointmentService _appointmentService;
+        private readonly IUserRepository _userRepo;
 
         public HomeController(
             ILogger<HomeController> logger,
             PatientService patientService,
             IDoctorRepository doctorRepo,
-            AppointmentService appointmentService)
+            AppointmentService appointmentService,
+            IUserRepository userRepo)
         {
             _logger = logger;
             _patientService = patientService;
             _doctorRepo = doctorRepo;
             _appointmentService = appointmentService;
+            _userRepo = userRepo;
         }
 
         public async Task<IActionResult> Index()
@@ -45,13 +48,14 @@ namespace MyProject.WebMvc.Controllers
             var patients = await _patientService.GetAllAsync();
             var doctors = await _doctorRepo.GetAllAsync();
             var appointments = await _appointmentService.GetAllAsync();
+            var users = await _userRepo.GetAllAsync();
 
             var today = DateTime.Today;
 
             var viewModel = new DashboardViewModel
             {
                 TotalPatientsCount = patients.Count(),
-                ActiveDoctorsCount = doctors.Count(d => d.User.IsActive),
+                ActiveDoctorsCount = doctors.Count(d => users.Any(u => u.Username == d.Email && u.IsActive)),
                 WaitingQueueCount = appointments.Count(a => a.Status == "Waiting" && a.AppointmentDate == DateOnly.FromDateTime(today)),
                 TodayAppointmentsCount = appointments.Count(a => a.AppointmentDate == DateOnly.FromDateTime(today)),
                 RecentCheckIns = appointments

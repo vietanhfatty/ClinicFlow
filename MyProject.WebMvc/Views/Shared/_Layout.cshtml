@@ -66,6 +66,11 @@
                             </a>
                         </li>
 
+                        <li class="nav-menu-item">
+                            <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Staff" ? "active" : "")" asp-controller="Staff" asp-action="Index">
+                                <i class="fa-solid fa-users-cog"></i> Staff Members
+                            </a>
+                        </li>
 
                         <li class="nav-menu-item">
                             <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Roles" ? "active" : "")" asp-controller="Roles" asp-action="Index">

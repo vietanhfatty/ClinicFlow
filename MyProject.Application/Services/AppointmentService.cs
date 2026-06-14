@@ -13,15 +13,18 @@ public class AppointmentService
     private readonly IAppointmentRepository _repo;
     private readonly IPatientRepository _patientRepo;
     private readonly IDoctorRepository _doctorRepo;
+    private readonly IUserRepository _userRepo;
 
     public AppointmentService(
         IAppointmentRepository repo,
         IPatientRepository patientRepo,
-        IDoctorRepository doctorRepo)
+        IDoctorRepository doctorRepo,
+        IUserRepository userRepo)
     {
         _repo = repo;
         _patientRepo = patientRepo;
         _doctorRepo = doctorRepo;
+        _userRepo = userRepo;
     }
 
     public async Task<IEnumerable<AppointmentDto>> GetAllAsync()
@@ -174,9 +177,12 @@ public class AppointmentService
 
     public async Task<IEnumerable<AppointmentDto>> GetByPatientUserIdAsync(int userId)
     {
+        var user = await _userRepo.GetByIdAsync(userId);
+        if (user == null) return Enumerable.Empty<AppointmentDto>();
+
         var list = await _repo.GetAllAsync();
         return list
-            .Where(a => a.Patient != null && a.Patient.UserId == userId)
+            .Where(a => a.Patient != null && a.Patient.Phone == user.Username)
             .Select(MapToDto);
     }
 
@@ -235,9 +241,9 @@ public class AppointmentService
         return new AppointmentDto(
             a.AppointmentId,
             a.PatientId,
-            a.Patient != null && a.Patient.User != null ? a.Patient.User.FullName : "Unknown Patient",
+            a.Patient != null ? a.Patient.FullName : "Unknown Patient",
             a.DoctorId,
-            a.Doctor != null && a.Doctor.User != null ? a.Doctor.User.FullName : "Unknown Doctor",
+            a.Doctor != null ? a.Doctor.FullName : "Unknown Doctor",
             a.AppointmentDate,
             a.AppointmentTime,
             a.Status,

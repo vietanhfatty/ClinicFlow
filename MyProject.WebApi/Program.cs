@@ -20,6 +20,7 @@ builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
 builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 
 // Register Services
 builder.Services.AddScoped<RoleService>();
@@ -28,6 +29,7 @@ builder.Services.AddScoped<DoctorService>();
 builder.Services.AddScoped<AppointmentService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<MedicalRecordService>();
+builder.Services.AddScoped<StaffService>();
 
 // Add Data Protection to share authentication cookies with WebMvc
 builder.Services.AddDataProtection()

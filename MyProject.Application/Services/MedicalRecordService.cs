@@ -82,8 +82,8 @@ public class MedicalRecordService
 
     private MedicalRecordDto MapToDto(MedicalRecord mr)
     {
-        var patientName = mr.Appointment?.Patient?.User?.FullName ?? "Unknown Patient";
-        var doctorName = mr.Appointment?.Doctor?.User?.FullName ?? "Unknown Doctor";
+        var patientName = mr.Appointment?.Patient?.FullName ?? "Unknown Patient";
+        var doctorName = mr.Appointment?.Doctor?.FullName ?? "Unknown Doctor";
 
         var prescriptions = mr.Prescriptions.Select(p => new PrescriptionDto(
             p.PrescriptionId,

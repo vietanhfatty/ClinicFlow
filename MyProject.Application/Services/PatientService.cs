@@ -26,34 +26,40 @@ public class PatientService
     public async Task<IEnumerable<PatientDto>> GetAllAsync()
     {
         var list = await _repo.GetAllAsync();
-        return list.Select(MapToDto);
+        var users = await _userRepo.GetAllAsync();
+        return list.Select(p => MapToDto(p, users));
     }
 
     public async Task<PatientDto?> GetByIdAsync(int id)
     {
         var p = await _repo.GetByIdAsync(id);
-        return p is null ? null : MapToDto(p);
+        if (p is null) return null;
+        var users = await _userRepo.GetAllAsync();
+        return MapToDto(p, users);
     }
 
     public async Task CreateAsync(CreatePatientRequest req)
     {
         ValidatePatientData(req.Phone, req.DateOfBirth, req.EmergencyContactPhone);
 
-        // Username must be unique
-        var existingUser = await _userRepo.GetByUsernameAsync(req.Username.Trim());
+        var phone = req.Phone?.Trim();
+        if (string.IsNullOrWhiteSpace(phone))
+        {
+            throw new ArgumentException("Phone number is required.");
+        }
+
+        // Username (which is the phone number) must be unique
+        var existingUser = await _userRepo.GetByUsernameAsync(phone);
         if (existingUser != null)
         {
-            throw new ArgumentException($"Username '{req.Username}' is already taken.");
+            throw new ArgumentException($"Phone number '{phone}' is already registered.");
         }
 
         // Phone unique validation
-        if (!string.IsNullOrWhiteSpace(req.Phone))
+        var patients = await _repo.GetAllAsync();
+        if (patients.Any(p => p.Phone == phone))
         {
-            var patients = await _repo.GetAllAsync();
-            if (patients.Any(p => p.User.Phone == req.Phone.Trim()))
-            {
-                throw new ArgumentException($"Phone number '{req.Phone}' is already in use by another patient.");
-            }
+            throw new ArgumentException($"Phone number '{phone}' is already in use by another patient.");
         }
 
         // Get Patient role
@@ -63,10 +69,8 @@ public class PatientService
 
         var user = new User
         {
-            FullName = req.FullName.Trim(),
-            Username = req.Username.Trim(),
+            Username = phone,
             PasswordHash = HashPassword(req.Password),
-            Phone = req.Phone?.Trim(),
             RoleId = patientRole.RoleId,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -74,7 +78,8 @@ public class PatientService
 
         var patient = new Patient
         {
-            User = user,
+            FullName = req.FullName.Trim(),
+            Phone = phone,
             DateOfBirth = req.DateOfBirth,
             Gender = req.Gender?.Trim(),
             Address = req.Address?.Trim(),
@@ -83,6 +88,7 @@ public class PatientService
             EmergencyContactPhone = req.EmergencyContactPhone?.Trim()
         };
 
+        await _userRepo.AddAsync(user);
         await _repo.AddAsync(patient);
     }
 
@@ -93,20 +99,36 @@ public class PatientService
         var patient = await _repo.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Patient with ID {id} not found");
 
+        var oldPhone = patient.Phone;
+        var newPhone = req.Phone?.Trim();
+
         // Phone unique validation
-        if (!string.IsNullOrWhiteSpace(req.Phone))
+        if (!string.IsNullOrWhiteSpace(newPhone) && newPhone != oldPhone)
         {
             var patients = await _repo.GetAllAsync();
-            if (patients.Any(p => p.PatientId != id && p.User.Phone == req.Phone.Trim()))
+            if (patients.Any(p => p.PatientId != id && p.Phone == newPhone))
             {
-                throw new ArgumentException($"Phone number '{req.Phone}' is already in use by another patient.");
+                throw new ArgumentException($"Phone number '{newPhone}' is already in use by another patient.");
             }
         }
 
-        patient.User.FullName = req.FullName.Trim();
-        patient.User.Phone = req.Phone?.Trim();
-        patient.User.UpdatedAt = DateTime.UtcNow;
+        // Update corresponding User if phone changed
+        if (!string.IsNullOrWhiteSpace(oldPhone))
+        {
+            var user = await _userRepo.GetByUsernameAsync(oldPhone);
+            if (user != null)
+            {
+                if (!string.IsNullOrWhiteSpace(newPhone) && newPhone != oldPhone)
+                {
+                    user.Username = newPhone;
+                }
+                user.UpdatedAt = DateTime.UtcNow;
+                await _userRepo.UpdateAsync(user);
+            }
+        }
 
+        patient.FullName = req.FullName.Trim();
+        patient.Phone = newPhone;
         patient.DateOfBirth = req.DateOfBirth;
         patient.Gender = req.Gender?.Trim();
         patient.Address = req.Address?.Trim();
@@ -145,6 +167,15 @@ public class PatientService
 
     public async Task DeleteAsync(int id)
     {
+        var patient = await _repo.GetByIdAsync(id);
+        if (patient != null && !string.IsNullOrWhiteSpace(patient.Phone))
+        {
+            var user = await _userRepo.GetByUsernameAsync(patient.Phone);
+            if (user != null)
+            {
+                await _userRepo.DeleteAsync(user.UserId);
+            }
+        }
         await _repo.DeleteAsync(id);
     }
 
@@ -153,14 +184,15 @@ public class PatientService
         return _repo.GetQueryable();
     }
 
-    private PatientDto MapToDto(Patient p)
+    private PatientDto MapToDto(Patient p, IEnumerable<User> users)
     {
+        var user = users.FirstOrDefault(u => u.Username == p.Phone);
         return new PatientDto(
             p.PatientId,
-            p.UserId,
-            p.User.FullName,
-            p.User.Username,
-            p.User.Phone,
+            user?.UserId ?? 0,
+            p.FullName,
+            user?.Username ?? "",
+            p.Phone,
             p.DateOfBirth,
             p.Gender,
             p.Address,

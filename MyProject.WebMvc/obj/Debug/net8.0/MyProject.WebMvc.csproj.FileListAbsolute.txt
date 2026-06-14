@@ -93,4 +93,3 @@ D:\PRN212_demo\232\Project_PRN232\MyProject.WebMvc\bin\Debug\net8.0\MyProject.In
 D:\PRN212_demo\232\Project_PRN232\MyProject.WebMvc\bin\Debug\net8.0\MyProject.Domain.pdb
 D:\PRN212_demo\232\Project_PRN232\MyProject.WebMvc\obj\Debug\net8.0\MyProject.WebMvc.csproj.AssemblyReference.cache
 D:\PRN212_demo\232\Project_PRN232\MyProject.WebMvc\obj\Debug\net8.0\MyProjec.ED16561D.Up2Date
-D:\PRN212_demo\232\Project_PRN232\MyProject.WebMvc\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
