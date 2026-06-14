@@ -11,6 +11,8 @@ public partial class Appointment
 
     public int DoctorId { get; set; }
 
+    public int? StaffId { get; set; }
+
     public DateOnly AppointmentDate { get; set; }
 
     public TimeSpan AppointmentTime { get; set; }
@@ -24,6 +26,8 @@ public partial class Appointment
     public virtual Doctor Doctor { get; set; } = null!;
 
     public virtual Patient Patient { get; set; } = null!;
+
+    public virtual Staff? Staff { get; set; }
 
     public virtual MedicalRecord? MedicalRecord { get; set; }
 }

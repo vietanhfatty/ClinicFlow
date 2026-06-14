@@ -14,6 +14,11 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
+    public async Task<IEnumerable<User>> GetAllAsync()
+    {
+        return await _context.Users.Include(u => u.Role).ToListAsync();
+    }
+
     public async Task<User?> GetByIdAsync(int id)
     {
         return await _context.Users

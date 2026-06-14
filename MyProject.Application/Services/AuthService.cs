@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,10 +12,20 @@ namespace MyProject.Application.Services;
 public class AuthService
 {
     private readonly IUserRepository _userRepo;
+    private readonly IPatientRepository _patientRepo;
+    private readonly IDoctorRepository _doctorRepo;
+    private readonly IStaffRepository _staffRepo;
 
-    public AuthService(IUserRepository userRepo)
+    public AuthService(
+        IUserRepository userRepo,
+        IPatientRepository patientRepo,
+        IDoctorRepository doctorRepo,
+        IStaffRepository staffRepo)
     {
         _userRepo = userRepo;
+        _patientRepo = patientRepo;
+        _doctorRepo = doctorRepo;
+        _staffRepo = staffRepo;
     }
 
     public async Task<LoginResponse> LoginAsync(string username, string password)
@@ -36,13 +47,41 @@ public class AuthService
         }
 
         var inputHash = HashPassword(password);
-        if (user.PasswordHash != inputHash)
+        if (!string.Equals(user.PasswordHash, inputHash, StringComparison.OrdinalIgnoreCase))
         {
             return new LoginResponse(false, "Invalid username or password.", null, null, null, null);
         }
 
-        var fullName = user.FullName;
+        var fullName = user.Username;
         var roleName = user.Role?.RoleName ?? "User";
+
+        if (roleName.Equals("Patient", StringComparison.OrdinalIgnoreCase))
+        {
+            var patients = await _patientRepo.GetAllAsync();
+            var patient = patients.FirstOrDefault(p => p.Phone == user.Username);
+            if (patient != null) fullName = patient.FullName;
+        }
+        else if (roleName.Equals("Doctor", StringComparison.OrdinalIgnoreCase))
+        {
+            var doctors = await _doctorRepo.GetAllAsync();
+            var doctor = doctors.FirstOrDefault(d => 
+                string.Equals(d.Email, user.Username, StringComparison.OrdinalIgnoreCase) ||
+                (user.Username.StartsWith("doctor", StringComparison.OrdinalIgnoreCase) && 
+                 int.TryParse(user.Username.Substring(6), out int num) && 
+                 num == d.DoctorId));
+            if (doctor != null) fullName = doctor.FullName;
+        }
+        else if (roleName.Equals("Staff", StringComparison.OrdinalIgnoreCase) || roleName.Equals("Receptionist", StringComparison.OrdinalIgnoreCase))
+        {
+            var staffList = await _staffRepo.GetAllAsync();
+            var staff = staffList.FirstOrDefault(s => 
+                string.Equals(s.Email, user.Username, StringComparison.OrdinalIgnoreCase) || 
+                string.Equals(s.Phone, user.Username, StringComparison.OrdinalIgnoreCase) ||
+                (user.Username.StartsWith("staff", StringComparison.OrdinalIgnoreCase) && 
+                 int.TryParse(user.Username.Substring(5), out int num) && 
+                 num == s.StaffId));
+            if (staff != null) fullName = staff.FullName;
+        }
 
         return new LoginResponse(
             true,

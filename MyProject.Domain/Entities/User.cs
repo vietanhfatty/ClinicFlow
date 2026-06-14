@@ -7,13 +7,9 @@ public partial class User
 {
     public int UserId { get; set; }
 
-    public string FullName { get; set; } = null!;
-
     public string Username { get; set; } = null!;
 
     public string PasswordHash { get; set; } = null!;
-
-    public string? Phone { get; set; }
 
     public int RoleId { get; set; }
 
@@ -24,8 +20,4 @@ public partial class User
     public DateTime? UpdatedAt { get; set; }
 
     public virtual Role Role { get; set; } = null!;
-
-    public virtual Doctor? Doctor { get; set; }
-
-    public virtual Patient? Patient { get; set; }
 }

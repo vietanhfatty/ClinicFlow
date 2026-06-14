@@ -18,14 +18,12 @@ public class DoctorRepository : IDoctorRepository
     public async Task<IEnumerable<Doctor>> GetAllAsync()
     {
         return await _context.Doctors
-            .Include(d => d.User)
             .ToListAsync();
     }
 
     public async Task<Doctor?> GetByIdAsync(int id)
     {
         return await _context.Doctors
-            .Include(d => d.User)
             .FirstOrDefaultAsync(d => d.DoctorId == id);
     }
 
@@ -38,10 +36,6 @@ public class DoctorRepository : IDoctorRepository
     public async Task UpdateAsync(Doctor doctor)
     {
         _context.Entry(doctor).State = EntityState.Modified;
-        if (doctor.User != null)
-        {
-            _context.Entry(doctor.User).State = EntityState.Modified;
-        }
         await _context.SaveChangesAsync();
     }
 

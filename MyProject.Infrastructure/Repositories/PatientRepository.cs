@@ -19,14 +19,12 @@ public class PatientRepository : IPatientRepository
     public async Task<IEnumerable<Patient>> GetAllAsync()
     {
         return await _context.Patients
-            .Include(p => p.User)
             .ToListAsync();
     }
 
     public async Task<Patient?> GetByIdAsync(int id)
     {
         return await _context.Patients
-            .Include(p => p.User)
             .FirstOrDefaultAsync(p => p.PatientId == id);
     }
 
@@ -39,10 +37,6 @@ public class PatientRepository : IPatientRepository
     public async Task UpdateAsync(Patient patient)
     {
         _context.Entry(patient).State = EntityState.Modified;
-        if (patient.User != null)
-        {
-            _context.Entry(patient.User).State = EntityState.Modified;
-        }
         await _context.SaveChangesAsync();
     }
 
@@ -58,6 +52,6 @@ public class PatientRepository : IPatientRepository
 
     public IQueryable<Patient> GetQueryable()
     {
-        return _context.Patients.Include(p => p.User).AsQueryable();
+        return _context.Patients.AsQueryable();
     }
 }

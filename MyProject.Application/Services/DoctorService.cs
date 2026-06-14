@@ -26,18 +26,22 @@ public class DoctorService
     public async Task<IEnumerable<DoctorDto>> GetAllAsync()
     {
         var list = await _repo.GetAllAsync();
-        return list.Select(MapToDto);
+        var users = await _userRepo.GetAllAsync();
+        return list.Select(d => MapToDto(d, users));
     }
 
     public async Task<DoctorDto?> GetByIdAsync(int id)
     {
         var d = await _repo.GetByIdAsync(id);
-        return d is null ? null : MapToDto(d);
+        if (d is null) return null;
+        var users = await _userRepo.GetAllAsync();
+        return MapToDto(d, users);
     }
 
     public async Task CreateAsync(CreateDoctorRequest req)
     {
-        var existingUser = await _userRepo.GetByUsernameAsync(req.Username.Trim());
+        var username = req.Username.Trim();
+        var existingUser = await _userRepo.GetByUsernameAsync(username);
         if (existingUser != null)
         {
             throw new ArgumentException($"Username '{req.Username}' is already taken.");
@@ -49,10 +53,8 @@ public class DoctorService
 
         var user = new User
         {
-            FullName = req.FullName.Trim(),
-            Username = req.Username.Trim(),
+            Username = username,
             PasswordHash = HashPassword(req.Password),
-            Phone = req.Phone?.Trim(),
             RoleId = doctorRole.RoleId,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -60,12 +62,15 @@ public class DoctorService
 
         var doctor = new Doctor
         {
-            User = user,
+            FullName = req.FullName.Trim(),
+            Phone = req.Phone?.Trim(),
+            Email = username, // link Doctor.Email with User.Username
             Specialization = req.Specialization.Trim(),
             ExperienceYears = req.ExperienceYears,
             Description = req.Description?.Trim()
         };
 
+        await _userRepo.AddAsync(user);
         await _repo.AddAsync(doctor);
     }
 
@@ -74,10 +79,8 @@ public class DoctorService
         var doctor = await _repo.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Doctor with ID {id} not found");
 
-        doctor.User.FullName = req.FullName.Trim();
-        doctor.User.Phone = req.Phone?.Trim();
-        doctor.User.UpdatedAt = DateTime.UtcNow;
-
+        doctor.FullName = req.FullName.Trim();
+        doctor.Phone = req.Phone?.Trim();
         doctor.Specialization = req.Specialization.Trim();
         doctor.ExperienceYears = req.ExperienceYears;
         doctor.Description = req.Description?.Trim();
@@ -87,17 +90,32 @@ public class DoctorService
 
     public async Task DeleteAsync(int id)
     {
+        var doctor = await _repo.GetByIdAsync(id);
+        if (doctor != null && !string.IsNullOrWhiteSpace(doctor.Email))
+        {
+            var user = await _userRepo.GetByUsernameAsync(doctor.Email);
+            if (user != null)
+            {
+                await _userRepo.DeleteAsync(user.UserId);
+            }
+        }
         await _repo.DeleteAsync(id);
     }
 
-    private DoctorDto MapToDto(Doctor d)
+    private DoctorDto MapToDto(Doctor d, IEnumerable<User> users)
     {
+        var user = users.FirstOrDefault(u => 
+            string.Equals(u.Username, d.Email, StringComparison.OrdinalIgnoreCase) ||
+            (u.Username.StartsWith("doctor", StringComparison.OrdinalIgnoreCase) && 
+             int.TryParse(u.Username.Substring(6), out int num) && 
+             num == d.DoctorId)
+        );
         return new DoctorDto(
             d.DoctorId,
-            d.UserId,
-            d.User.FullName,
-            d.User.Username,
-            d.User.Phone,
+            user?.UserId ?? 0,
+            d.FullName,
+            user?.Username ?? "",
+            d.Phone,
             d.Specialization,
             d.ExperienceYears,
             d.Description
