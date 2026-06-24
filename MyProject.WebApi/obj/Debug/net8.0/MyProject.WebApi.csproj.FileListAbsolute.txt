@@ -180,3 +180,4 @@ D:\PRN212_demo\232\Project_PRN232\MyProject.WebApi\bin\Debug\net8.0\Microsoft.OD
 D:\PRN212_demo\232\Project_PRN232\MyProject.WebApi\bin\Debug\net8.0\Microsoft.OData.Edm.dll
 D:\PRN212_demo\232\Project_PRN232\MyProject.WebApi\bin\Debug\net8.0\Microsoft.OData.ModelBuilder.dll
 D:\PRN212_demo\232\Project_PRN232\MyProject.WebApi\bin\Debug\net8.0\Microsoft.Spatial.dll
+D:\PRN212_demo\232\Project_PRN232\MyProject.WebApi\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

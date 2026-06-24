@@ -74,6 +74,79 @@
                     </div>
                 </div>
             </div>
+
+            @if (ViewBag.MedicalHistory != null)
+            {
+                var history = ViewBag.MedicalHistory as List<MyProject.Application.DTOs.MedicalRecordDto>;
+                <div class="card shadow-sm border-0 rounded-4 mt-4 bg-white">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h5 class="m-0 fw-bold text-success"><i class="fa-solid fa-notes-medical me-2"></i>Lịch sử bệnh án / Patient Medical History</h5>
+                    </div>
+                    <div class="card-body p-4 pt-1">
+                        @if (history == null || !history.Any())
+                        {
+                            <div class="text-center py-4 text-muted bg-light rounded-3">
+                                <i class="fa-solid fa-folder-open fa-2x mb-2 text-secondary"></i>
+                                <p class="mb-0 small fw-bold">Chưa có lịch sử bệnh án nào được ghi nhận cho bệnh nhân này.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="position-relative ps-3" style="border-left: 2px solid #e9ecef; margin-left: 10px;">
+                                @foreach (var record in history)
+                                {
+                                    <div class="position-relative mb-4">
+                                        <!-- Timeline Bullet -->
+                                        <span class="position-absolute rounded-circle bg-success" 
+                                              style="width: 12px; height: 12px; left: -19px; top: 6px; border: 2px solid #fff; box-shadow: 0 0 0 2px #e9ecef;"></span>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="text-muted small fw-bold">
+                                                <i class="fa-solid fa-calendar-alt me-1"></i> @record.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                                            </span>
+                                            <span class="badge bg-secondary-subtle text-secondary">ID #@record.MedicalRecordId</span>
+                                        </div>
+                                        <div class="bg-light p-3 rounded-3 border-start border-success border-3">
+                                            <div class="row">
+                                                <div class="col-sm-6 mb-2 mb-sm-0">
+                                                    <div class="text-muted small fw-semibold">CHẨN ĐOÁN (DIAGNOSIS)</div>
+                                                    <div class="fw-bold text-dark">@record.Diagnosis</div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="text-muted small fw-semibold">BÁC SĨ (DOCTOR)</div>
+                                                    <div class="text-dark">@record.DoctorName</div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 pt-2 border-top border-2 border-white-50">
+                                                <div class="text-muted small fw-semibold">TRIỆU CHỨNG (SYMPTOMS)</div>
+                                                <div class="text-secondary small text-wrap">@(string.IsNullOrEmpty(record.Symptoms) ? "None" : record.Symptoms)</div>
+                                            </div>
+                                            <div class="mt-2">
+                                                <div class="text-muted small fw-semibold">ĐIỀU TRỊ (TREATMENT PLAN)</div>
+                                                <div class="text-secondary small text-wrap">@(string.IsNullOrEmpty(record.Treatment) ? "None" : record.Treatment)</div>
+                                            </div>
+                                            @if (record.Prescriptions != null && record.Prescriptions.Any())
+                                            {
+                                                <div class="mt-2">
+                                                    <div class="text-muted small fw-semibold">THUỐC (PRESCRIPTION)</div>
+                                                    <div class="text-dark small">
+                                                        @string.Join(", ", record.Prescriptions.Select(p => $"{p.MedicineName} (Qty: {p.Quantity})"))
+                                                    </div>
+                                                </div>
+                                            }
+                                            <div class="text-end mt-2">
+                                                <a asp-controller="MedicalRecords" asp-action="Details" asp-route-id="@record.MedicalRecordId" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fs-7">
+                                                    <i class="fa-solid fa-folder-open me-1"></i> Xem chi tiết / Open File
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>

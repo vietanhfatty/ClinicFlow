@@ -95,6 +95,14 @@ public class AppointmentApiService
         return await response.Content.ReadFromJsonAsync<List<AppointmentDto>>() ?? new List<AppointmentDto>();
     }
 
+    public async Task<List<string>> GetBusySlotsAsync(int doctorId, string date)
+    {
+        var client = GetClient();
+        var response = await client.GetAsync($"appointments/busy-slots?doctorId={doctorId}&date={date}");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<string>>() ?? new List<string>();
+    }
+
     private static async Task ThrowIfErrorAsync(HttpResponseMessage response)
     {
         if (response.IsSuccessStatusCode) return;

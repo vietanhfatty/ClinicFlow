@@ -52,6 +52,12 @@ public class DoctorsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateDoctorRequest request)
     {
+        if (!User.IsInRole("Admin"))
+        {
+            TempData["ErrorMessage"] = "Only Administrators can modify doctor profiles.";
+            return RedirectToAction(nameof(Index));
+        }
+
         if (!ModelState.IsValid)
         {
             TempData["ErrorMessage"] = GetFirstModelError();
@@ -78,6 +84,12 @@ public class DoctorsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, UpdateDoctorRequest request)
     {
+        if (!User.IsInRole("Admin"))
+        {
+            TempData["ErrorMessage"] = "Only Administrators can modify doctor profiles.";
+            return RedirectToAction(nameof(Index));
+        }
+
         if (!ModelState.IsValid)
         {
             TempData["ErrorMessage"] = GetFirstModelError();
@@ -108,6 +120,12 @@ public class DoctorsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
+        if (!User.IsInRole("Admin"))
+        {
+            TempData["ErrorMessage"] = "Only Administrators can modify doctor profiles.";
+            return RedirectToAction(nameof(Index));
+        }
+
         try
         {
             await _doctorService.DeleteAsync(id);

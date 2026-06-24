@@ -9,7 +9,7 @@ using MyProject.Application.Services;
 
 namespace MyProject.WebMvc.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,Staff")]
 public class PatientsController : Controller
 {
     private readonly PatientApiService _patientService;
@@ -160,6 +160,33 @@ public class PatientsController : Controller
             TempData["ErrorMessage"] = "Failed to delete patient. They may have existing appointments.";
         }
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin,Staff")]
+    public async Task<IActionResult> CreateApi([FromBody] CreatePatientRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new { Message = GetFirstModelError() });
+        }
+
+        try
+        {
+            await _patientService.CreateAsync(request);
+            // Get the newly created patient by phone
+            var list = await _patientService.GetAllAsync();
+            var patient = list.FirstOrDefault(p => p.Phone == request.Phone);
+            return Ok(patient);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = "Failed to register patient: " + ex.Message });
+        }
     }
 
     private string GetFirstModelError()

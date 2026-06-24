@@ -21,7 +21,7 @@ public class MedicalRecordsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Doctor")]
     public async Task<IActionResult> GetAll()
     {
         return Ok(await _service.GetAllAsync());

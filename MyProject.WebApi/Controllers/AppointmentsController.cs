@@ -175,4 +175,45 @@ public class AppointmentsController : ControllerBase
     {
         return Ok(await _service.GetByPatientIdAsync(patientId));
     }
+
+    [HttpGet("busy-slots")]
+    public async Task<IActionResult> GetBusySlots([FromQuery] int doctorId, [FromQuery] string date)
+    {
+        if (!DateOnly.TryParse(date, out DateOnly dateOnly))
+        {
+            return BadRequest(new { Message = "Invalid date format. Expected yyyy-MM-dd." });
+        }
+
+        var list = await _service.GetAllAsync();
+        var activeAppointments = list
+            .Where(a => a.DoctorId == doctorId && a.AppointmentDate == dateOnly && a.Status != "Cancelled")
+            .ToList();
+
+        var predefinedSlots = new List<TimeSpan>
+        {
+            new TimeSpan(8, 0, 0), new TimeSpan(8, 30, 0), new TimeSpan(9, 0, 0), new TimeSpan(9, 30, 0),
+            new TimeSpan(10, 0, 0), new TimeSpan(10, 30, 0), new TimeSpan(11, 0, 0), new TimeSpan(11, 30, 0),
+            new TimeSpan(13, 30, 0), new TimeSpan(14, 0, 0), new TimeSpan(14, 30, 0), new TimeSpan(15, 0, 0),
+            new TimeSpan(15, 30, 0), new TimeSpan(16, 0, 0), new TimeSpan(16, 30, 0), new TimeSpan(17, 0, 0)
+        };
+
+        var busy = new List<string>();
+        foreach (var slot in predefinedSlots)
+        {
+            var slotEnd = slot.Add(TimeSpan.FromMinutes(30));
+            var isBusy = activeAppointments.Any(a => 
+            {
+                var apptStart = a.AppointmentTime;
+                var apptEnd = apptStart.Add(TimeSpan.FromMinutes(30));
+                return apptStart < slotEnd && slot < apptEnd;
+            });
+
+            if (isBusy)
+            {
+                busy.Add(slot.ToString(@"hh\:mm"));
+            }
+        }
+
+        return Ok(busy);
+    }
 }

@@ -27,7 +27,7 @@ public class MedicalRecordsController : Controller
         _appointmentApiService = appointmentApiService;
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Doctor")]
     public async Task<IActionResult> Index()
     {
         var list = await _medicalRecordService.GetAllAsync();
