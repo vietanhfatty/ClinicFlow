@@ -108,7 +108,11 @@ public class DoctorService
             string.Equals(u.Username, d.Email, StringComparison.OrdinalIgnoreCase) ||
             (u.Username.StartsWith("doctor", StringComparison.OrdinalIgnoreCase) && 
              int.TryParse(u.Username.Substring(6), out int num) && 
-             num == d.DoctorId)
+             num == d.DoctorId) ||
+            (u.Username.StartsWith("dr.", StringComparison.OrdinalIgnoreCase) && 
+             !string.IsNullOrEmpty(d.Email) && 
+             d.Email.Contains('@') && 
+             string.Equals(u.Username.Substring(3), d.Email.Split('@')[0].Split('.').LastOrDefault(), StringComparison.OrdinalIgnoreCase))
         );
         return new DoctorDto(
             d.DoctorId,

@@ -4,76 +4,591 @@
     ViewData["Title"] = "Book Appointment";
 }
 
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="m-0 fw-bold text-primary"><i class="fa-solid fa-calendar-plus me-2"></i>Book New Appointment</h5>
-                </div>
-                <div class="card-body p-4">
-                    @if (!ViewData.ModelState.IsValid)
-                    {
-                        <div class="alert alert-danger" role="alert">
-                            <div asp-validation-summary="All" class="text-danger small"></div>
-                        </div>
-                    }
+<style>
+    /* Modern UI Custom Styling */
+    .booking-wizard {
+        font-family: 'Outfit', sans-serif;
+    }
+    .wizard-step-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+        transition: all 0.3s ease;
+    }
+    .wizard-step-card.active {
+        border-left: 5px solid #0d6efd;
+    }
+    .step-number {
+        background-color: #f0f4f9;
+        color: #0d6efd;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-right: 12px;
+    }
+    .time-slot-btn {
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid #dee2e6;
+        background-color: #fff;
+    }
+    .time-slot-btn:hover:not(:disabled) {
+        border-color: #0d6efd;
+        color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.05);
+        transform: translateY(-2px);
+    }
+    .time-slot-btn.active {
+        background-color: #0d6efd !important;
+        color: #fff !important;
+        border-color: #0d6efd !important;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+    }
+    .time-slot-btn:disabled {
+        background-color: #f8f9fa;
+        color: #adb5bd;
+        border-color: #e9ecef;
+        cursor: not-allowed;
+        text-decoration: line-through;
+    }
+    .time-slot-btn.available-slot {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        border-color: #a5d6a7;
+    }
+    .time-slot-btn.available-slot:hover {
+        background-color: #c8e6c9;
+        border-color: #81c784;
+        color: #1b5e20;
+    }
+    .time-slot-btn.available-slot.active {
+        background-color: #2e7d32 !important;
+        color: #fff !important;
+        border-color: #2e7d32 !important;
+        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
+    }
+    .time-slot-btn.busy-slot {
+        background-color: #ffebee;
+        color: #c62828;
+        border-color: #ffcdd2;
+        text-decoration: line-through;
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .search-result-item {
+        cursor: pointer;
+        padding: 10px 15px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    .search-result-item:hover {
+        background-color: #f0f4f9;
+        color: #0d6efd;
+    }
+    .patient-selected-badge {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: #198754;
+        border: 1px solid rgba(25, 135, 84, 0.2);
+        padding: 12px;
+        border-radius: 12px;
+    }
+</style>
 
-                    <form asp-action="Create" method="post">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="PatientId" class="form-label fw-bold small text-muted">Select Patient</label>
-                                <select asp-for="PatientId" class="form-select rounded-3" required>
-                                    <option value="">-- Select Patient --</option>
-                                    @if (ViewBag.Patients != null)
-                                    {
-                                        @foreach (var pat in ViewBag.Patients)
-                                        {
-                                            <option value="@pat.PatientId">@pat.FullName (@(pat.Phone ?? "N/A"))</option>
-                                        }
-                                    }
+<div class="container py-4 booking-wizard">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h3 class="fw-bold m-0 text-dark">Schedule Appointment</h3>
+                    <p class="text-muted m-0">Guided appointment setup for hospital staff members.</p>
+                </div>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+                </a>
+            </div>
+
+            <form asp-action="Create" method="post" id="appointmentForm">
+                <!-- STEP 1: PATIENT -->
+                <div class="card wizard-step-card active">
+                    <div class="card-header bg-white py-3 border-0 d-flex align-items-center">
+                        <span class="step-number">1</span>
+                        <h5 class="fw-bold m-0 text-primary">Patient Identification</h5>
+                    </div>
+                    <div class="card-body px-4 pb-4 pt-1">
+                        <!-- Search existing -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted small">Search Patient (Name or Phone)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                                <input type="text" id="patientSearchInput" class="form-control bg-light border-start-0" placeholder="Type phone number or patient name..." autocomplete="off" />
+                            </div>
+                            <div id="searchResults" class="list-group shadow-sm mt-2 d-none" style="max-height: 250px; overflow-y: auto; z-index: 1000; position: relative;">
+                                <!-- Matches dynamically loaded -->
+                            </div>
+                        </div>
+
+                        <!-- Selected Patient Info -->
+                        <div id="selectedPatientContainer" class="d-none mb-3">
+                            <div class="patient-selected-badge d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fa-solid fa-circle-check me-2"></i>
+                                    <span class="fw-bold" id="selectedPatientName">No patient selected</span>
+                                    <span class="ms-2 text-muted small" id="selectedPatientPhone"></span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle" id="clearPatientBtn">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" asp-for="PatientId" id="hiddenPatientId" required />
+                        <span asp-validation-for="PatientId" class="text-danger small d-block mb-3"></span>
+
+                        <div class="text-center my-3">
+                            <span class="text-muted small">OR</span>
+                        </div>
+
+                        <!-- Add Patient Button -->
+                        <div class="text-center">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-4" id="toggleNewPatientBtn">
+                                <i class="fa-solid fa-user-plus me-1"></i> Register New Patient Inline
+                            </button>
+                        </div>
+
+                        <!-- Inline New Patient Form (Initially Hidden) -->
+                        <div id="newPatientFormContainer" class="d-none mt-4 p-4 border rounded-4 bg-light">
+                            <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-address-card me-2"></i>New Patient Registration</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Full Name *</label>
+                                    <input type="text" id="newPatName" class="form-control form-control-sm rounded-3" placeholder="e.g. Alice Smith" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Phone Number *</label>
+                                    <input type="text" id="newPatPhone" class="form-control form-control-sm rounded-3" placeholder="e.g. 0901234567" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Date of Birth</label>
+                                    <input type="date" id="newPatDob" class="form-control form-control-sm rounded-3" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Gender</label>
+                                    <select id="newPatGender" class="form-select form-select-sm rounded-3">
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Blood Type</label>
+                                    <select id="newPatBlood" class="form-select form-select-sm rounded-3">
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
+                                        <option value="Unknown" selected>Unknown</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">Address</label>
+                                    <input type="text" id="newPatAddress" class="form-control form-control-sm rounded-3" placeholder="e.g. 123 Baker Street" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Emergency Contact Name</label>
+                                    <input type="text" id="newPatEmergencyName" class="form-control form-control-sm rounded-3" placeholder="e.g. John Smith" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Emergency Contact Phone</label>
+                                    <input type="text" id="newPatEmergencyPhone" class="form-control form-control-sm rounded-3" placeholder="e.g. 0909876543" />
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3 me-2" id="cancelNewPatientBtn">Cancel</button>
+                                <button type="button" class="btn btn-success btn-sm rounded-pill px-4" id="submitNewPatientBtn">Save & Select</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: DOCTOR & SPECIALIZATION -->
+                <div class="card wizard-step-card">
+                    <div class="card-header bg-white py-3 border-0 d-flex align-items-center">
+                        <span class="step-number">2</span>
+                        <h5 class="fw-bold m-0 text-primary">Department & Doctor</h5>
+                    </div>
+                    <div class="card-body px-4 pb-4 pt-1">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold text-muted small">Specialization</label>
+                                <select id="specializationSelect" class="form-select rounded-3">
+                                    <option value="All">-- All Departments --</option>
+                                    <!-- Populated dynamically via JS -->
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label asp-for="DoctorId" class="form-label fw-bold small text-muted">Select Doctor</label>
-                                <select asp-for="DoctorId" class="form-select rounded-3" required>
-                                    <option value="">-- Select Doctor --</option>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DoctorId" class="form-label fw-semibold text-muted small">Select Doctor</label>
+                                <select asp-for="DoctorId" id="doctorSelect" class="form-select rounded-3" required>
+                                    <option value="">-- Choose Doctor --</option>
                                     @if (ViewBag.Doctors != null)
                                     {
                                         @foreach (var doc in ViewBag.Doctors)
                                         {
-                                            <option value="@doc.DoctorId">@doc.FullName (@(string.IsNullOrEmpty(doc.Specialization) ? "General" : doc.Specialization))</option>
+                                            <option value="@doc.DoctorId" data-spec="@doc.Specialization">@doc.FullName (@doc.Specialization)</option>
                                         }
                                     }
                                 </select>
+                                <span asp-validation-for="DoctorId" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: DATE & TIME SLOTS -->
+                <div class="card wizard-step-card">
+                    <div class="card-header bg-white py-3 border-0 d-flex align-items-center">
+                        <span class="step-number">3</span>
+                        <h5 class="fw-bold m-0 text-primary">Appointment Schedule</h5>
+                    </div>
+                    <div class="card-body px-4 pb-4 pt-1">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="AppointmentDate" class="form-label fw-semibold text-muted small">Exam Date</label>
+                                <input asp-for="AppointmentDate" type="date" id="appointmentDatePicker" class="form-control rounded-3" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" required />
+                                <span asp-validation-for="AppointmentDate" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold text-muted small">Selected Appointment Time</label>
+                                <input type="text" id="selectedTimeDisplay" class="form-control rounded-3 bg-white" placeholder="Choose a time slot below..." readonly />
+                                <input type="hidden" asp-for="AppointmentTime" id="hiddenTimeSpan" required />
+                                <span asp-validation-for="AppointmentTime" class="text-danger small"></span>
                             </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="AppointmentDate" class="form-label fw-bold small text-muted">Appointment Date</label>
-                                <input asp-for="AppointmentDate" type="date" class="form-control rounded-3" required />
+                        <!-- Slots Grid -->
+                        <div class="mt-3">
+                            <label class="form-label fw-semibold text-muted small mb-2">Available Time Slots</label>
+                            <div class="alert alert-info py-2 px-3 small border-0 rounded-3 mb-3 d-flex align-items-center" id="slotsHelpText">
+                                <i class="fa-solid fa-circle-info me-2"></i> Select a Doctor and Date above to check real-time slot availability.
                             </div>
-                            <div class="col-md-6">
-                                <label asp-for="AppointmentTime" class="form-label fw-bold small text-muted">Appointment Time</label>
-                                <input asp-for="AppointmentTime" type="time" class="form-control rounded-3" required />
+                            <div class="d-flex gap-3 mb-3 small fw-semibold">
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="d-inline-block rounded-circle" style="width: 12px; height: 12px; background-color: #a5d6a7;"></span>
+                                    <span class="text-success">Available Slot (Trống)</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="d-inline-block rounded-circle" style="width: 12px; height: 12px; background-color: #ffcdd2;"></span>
+                                    <span class="text-danger">Busy Slot (Đã đặt/Trùng)</span>
+                                </div>
+                            </div>
+
+                            <div class="row g-2" id="slotsGrid">
+                                <!-- Morning slots -->
+                                <div class="col-12 mt-3"><h6 class="fw-bold text-muted small">Morning</h6></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="08:00">08:00 AM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="08:30">08:30 AM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="09:00">09:00 AM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="09:30">09:30 AM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="10:00">10:00 AM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="10:30">10:30 AM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="11:00">11:00 AM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="11:30">11:30 AM</button></div>
+
+                                <!-- Afternoon slots -->
+                                <div class="col-12 mt-3"><h6 class="fw-bold text-muted small">Afternoon</h6></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="13:30">01:30 PM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="14:00">02:00 PM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="14:30">02:30 PM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="15:00">03:00 PM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="15:30">03:30 PM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="16:00">04:00 PM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="16:30">04:30 PM</button></div>
+                                <div class="col-6 col-sm-4 col-md-3"><button type="button" class="btn time-slot-btn w-100" data-time="17:00">05:00 PM</button></div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
+                <!-- STEP 4: REASON & CONFIRMATION -->
+                <div class="card wizard-step-card">
+                    <div class="card-header bg-white py-3 border-0 d-flex align-items-center">
+                        <span class="step-number">4</span>
+                        <h5 class="fw-bold m-0 text-primary">Consultation details</h5>
+                    </div>
+                    <div class="card-body px-4 pb-4 pt-1">
                         <div class="mb-4">
-                            <label asp-for="Reason" class="form-label fw-bold small text-muted">Reason for Visit</label>
-                            <textarea asp-for="Reason" rows="3" class="form-control rounded-3" placeholder="Enter reason for booking..."></textarea>
+                            <label asp-for="Reason" class="form-label fw-semibold text-muted small">Symptoms / Reason for visit</label>
+                            <textarea asp-for="Reason" class="form-control rounded-3" rows="3" placeholder="Provide details about the patient's symptoms or booking reason..."></textarea>
+                            <span asp-validation-for="Reason" class="text-danger small"></span>
                         </div>
 
                         <input type="hidden" name="Status" value="Pending" />
 
-                        <div class="d-flex justify-content-between">
-                            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
-                            <button type="submit" class="btn btn-primary rounded-pill px-4">Book Appointment</button>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm" id="bookBtn">
+                                <i class="fa-solid fa-check me-2"></i> Book Appointment
+                            </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Array of patients from ViewBag
+        const patients = [
+            @if (ViewBag.Patients != null)
+            {
+                @foreach (var pat in ViewBag.Patients)
+                {
+                    <text>{ id: @pat.PatientId, name: "@Html.Raw(pat.FullName)", phone: "@Html.Raw(pat.Phone ?? "")" },</text>
+                }
+            }
+        ];
+
+        $(document).ready(function () {
+            // Populate specializations list dynamically from doctor options
+            const specs = new Set();
+            $('#doctorSelect option').each(function () {
+                const spec = $(this).data('spec');
+                if (spec) specs.add(spec);
+            });
+            specs.forEach(s => {
+                $('#specializationSelect').append(`<option value="${s}">${s}</option>`);
+            });
+
+            // Patient dynamic search
+            $('#patientSearchInput').on('input', function () {
+                const query = $(this).val().toLowerCase().trim();
+                const $results = $('#searchResults');
+
+                if (query.length < 1) {
+                    $results.addClass('d-none').html('');
+                    return;
+                }
+
+                const matches = patients.filter(p => 
+                    p.name.toLowerCase().includes(query) || 
+                    p.phone.includes(query)
+                );
+
+                if (matches.length === 0) {
+                    $results.removeClass('d-none').html('<div class="list-group-item text-muted text-center py-3">No matching patients found.</div>');
+                    return;
+                }
+
+                let html = '';
+                matches.forEach(p => {
+                    html += `
+                        <div class="list-group-item search-result-item" data-id="${p.id}" data-name="${p.name}" data-phone="${p.phone}">
+                            <div class="fw-bold">${p.name}</div>
+                            <div class="text-muted small"><i class="fa-solid fa-phone me-1"></i> ${p.phone || 'N/A'}</div>
+                        </div>
+                    `;
+                });
+                $results.removeClass('d-none').html(html);
+            });
+
+            // Patient Selection
+            $(document).on('click', '.search-result-item', function () {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                const phone = $(this).data('phone');
+
+                selectPatient(id, name, phone);
+            });
+
+            function selectPatient(id, name, phone) {
+                $('#hiddenPatientId').val(id);
+                $('#selectedPatientName').text(name);
+                $('#selectedPatientPhone').text(phone ? `(Phone: ${phone})` : '');
+                
+                $('#selectedPatientContainer').removeClass('d-none');
+                $('#searchResults').addClass('d-none').html('');
+                $('#patientSearchInput').val('').prop('disabled', true);
+                $('#newPatientFormContainer').addClass('d-none');
+            }
+
+            // Clear selected patient
+            $('#clearPatientBtn').on('click', function () {
+                $('#hiddenPatientId').val('');
+                $('#patientSearchInput').prop('disabled', false).val('').focus();
+                $('#selectedPatientContainer').addClass('d-none');
+            });
+
+            // Inline register form toggle
+            $('#toggleNewPatientBtn').on('click', function () {
+                $('#newPatientFormContainer').removeClass('d-none');
+                $('#clearPatientBtn').click();
+                $('#newPatName').focus();
+            });
+
+            $('#cancelNewPatientBtn').on('click', function () {
+                $('#newPatientFormContainer').addClass('d-none');
+            });
+
+            // AJAX inline registration
+            $('#submitNewPatientBtn').on('click', function () {
+                const name = $('#newPatName').val().trim();
+                const phone = $('#newPatPhone').val().trim();
+                const dob = $('#newPatDob').val();
+                const gender = $('#newPatGender').val();
+                const blood = $('#newPatBlood').val();
+                const address = $('#newPatAddress').val().trim();
+                const emergencyName = $('#newPatEmergencyName').val().trim();
+                const emergencyPhone = $('#newPatEmergencyPhone').val().trim();
+
+                if (!name || !phone) {
+                    alert('Full Name and Phone Number are required.');
+                    return;
+                }
+
+                const postData = {
+                    FullName: name,
+                    Username: phone, // phone is used as username
+                    Password: "Password123", // default password
+                    Phone: phone,
+                    DateOfBirth: dob ? dob : null,
+                    Gender: gender,
+                    BloodType: blood,
+                    Address: address,
+                    EmergencyContactName: emergencyName,
+                    EmergencyContactPhone: emergencyPhone
+                };
+
+                $.ajax({
+                    url: '/Patients/CreateApi',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(postData),
+                    success: function (patient) {
+                        // Add to local patients list array
+                        patients.push({ id: patient.patientId, name: patient.fullName, phone: patient.phone });
+                        // Select it
+                        selectPatient(patient.patientId, patient.fullName, patient.phone);
+                        // Clean input
+                        $('#newPatientFormContainer').addClass('d-none');
+                        $('#newPatName, #newPatPhone, #newPatDob, #newPatAddress, #newPatEmergencyName, #newPatEmergencyPhone').val('');
+                        alert('Patient registered and selected successfully!');
+                    },
+                    error: function (xhr) {
+                        const err = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to register patient.';
+                        alert('Error: ' + err);
+                    }
+                });
+            });
+
+            // Filter Doctors by Specialization
+            $('#specializationSelect').on('change', function () {
+                const spec = $(this).val();
+                $('#doctorSelect').val('');
+                $('#selectedTimeDisplay').val('');
+                $('#hiddenTimeSpan').val('');
+                $('.time-slot-btn').removeClass('active').prop('disabled', false);
+
+                if (spec === 'All') {
+                    $('#doctorSelect option').show();
+                } else {
+                    $('#doctorSelect option').each(function () {
+                        if ($(this).val() === "" || $(this).data('spec') === spec) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                }
+                checkSlotsAvailability();
+            });
+
+            // Doctor selection change
+            $('#doctorSelect').on('change', function () {
+                $('#selectedTimeDisplay').val('');
+                $('#hiddenTimeSpan').val('');
+                $('.time-slot-btn').removeClass('active').prop('disabled', false);
+                checkSlotsAvailability();
+            });
+
+            // Date picker change
+            $('#appointmentDatePicker').on('change', function () {
+                $('#selectedTimeDisplay').val('');
+                $('#hiddenTimeSpan').val('');
+                $('.time-slot-btn').removeClass('active').prop('disabled', false);
+                checkSlotsAvailability();
+            });
+
+            // Check slots availability
+            function checkSlotsAvailability() {
+                const doctorId = $('#doctorSelect').val();
+                const date = $('#appointmentDatePicker').val();
+                const $grid = $('#slotsGrid');
+                const $help = $('#slotsHelpText');
+
+                if (!doctorId || !date) {
+                    $('.time-slot-btn').prop('disabled', true);
+                    $help.removeClass('alert-success alert-danger').addClass('alert-info')
+                         .html('<i class="fa-solid fa-circle-info me-2"></i> Select a Doctor and Date above to check real-time slot availability.');
+                    return;
+                }
+
+                $help.removeClass('alert-info alert-success alert-danger').addClass('alert-warning')
+                     .html('<i class="fa-solid fa-spinner fa-spin me-2"></i> Checking doctor schedule...');
+
+                $.ajax({
+                    url: `/Appointments/GetBusySlots?doctorId=${doctorId}&date=${date}`,
+                    type: 'GET',
+                    success: function (busySlots) {
+                        $('.time-slot-btn').prop('disabled', false).removeClass('available-slot busy-slot');
+                        
+                        let disabledCount = 0;
+                        $('.time-slot-btn').each(function () {
+                            const btnTime = $(this).data('time');
+                            if (busySlots.includes(btnTime)) {
+                                $(this).prop('disabled', true).addClass('busy-slot');
+                                disabledCount++;
+                            } else {
+                                $(this).addClass('available-slot');
+                            }
+                        });
+
+                        $help.removeClass('alert-warning alert-danger').addClass('alert-success')
+                             .html(`<i class="fa-solid fa-circle-check me-2"></i> Schedule loaded: ${16 - disabledCount} available slots (green), ${disabledCount} busy slots (red).`);
+                    },
+                    error: function () {
+                        $help.removeClass('alert-warning alert-success').addClass('alert-danger')
+                             .html('<i class="fa-solid fa-circle-exclamation me-2"></i> Failed to retrieve doctor schedule. Please try again.');
+                    }
+                });
+            }
+
+            // Click time slot button
+            $('.time-slot-btn').on('click', function () {
+                if ($(this).prop('disabled')) return;
+                
+                $('.time-slot-btn').removeClass('active');
+                $(this).addClass('active');
+
+                const timeVal = $(this).data('time');
+                $('#hiddenTimeSpan').val(timeVal);
+
+                const displayTime = $(this).text();
+                $('#selectedTimeDisplay').val(displayTime);
+            });
+
+            // Initial state
+            $('.time-slot-btn').prop('disabled', true);
+        });
+    </script>
+}

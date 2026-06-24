@@ -170,6 +170,27 @@
   },
   {
     "ContainingType": "MyProject.WebApi.Controllers.AppointmentsController",
+    "Method": "GetBusySlots",
+    "RelativePath": "api/Appointments/busy-slots",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "doctorId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "date",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "MyProject.WebApi.Controllers.AppointmentsController",
     "Method": "GetByPatient",
     "RelativePath": "api/Appointments/by-patient/{patientId}",
     "HttpMethod": "GET",

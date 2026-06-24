@@ -15,12 +15,14 @@ public class StaffService
     private readonly IStaffRepository _repo;
     private readonly IUserRepository _userRepo;
     private readonly IRoleRepository _roleRepo;
+    private readonly IAppointmentRepository _appointmentRepo;
 
-    public StaffService(IStaffRepository repo, IUserRepository userRepo, IRoleRepository roleRepo)
+    public StaffService(IStaffRepository repo, IUserRepository userRepo, IRoleRepository roleRepo, IAppointmentRepository appointmentRepo)
     {
         _repo = repo;
         _userRepo = userRepo;
         _roleRepo = roleRepo;
+        _appointmentRepo = appointmentRepo;
     }
 
     public async Task<IEnumerable<StaffDto>> GetAllAsync()
@@ -94,9 +96,24 @@ public class StaffService
         var staff = await _repo.GetByIdAsync(id);
         if (staff != null)
         {
-            // Find corresponding user. We check if there's a user matching staff Email or Phone
+            // Nullify StaffId on all appointments associated with this staff
+            var appointments = await _appointmentRepo.GetAllAsync();
+            var relatedAppointments = appointments.Where(a => a.StaffId == id).ToList();
+            foreach (var app in relatedAppointments)
+            {
+                app.StaffId = null;
+                await _appointmentRepo.UpdateAsync(app);
+            }
+
+            // Find corresponding user matching staff Email, Phone, or sequential username format (staffXX)
             var users = await _userRepo.GetAllAsync();
-            var user = users.FirstOrDefault(u => u.Username == staff.Email || u.Username == staff.Phone);
+            var user = users.FirstOrDefault(u => 
+                string.Equals(u.Username, staff.Email, StringComparison.OrdinalIgnoreCase) || 
+                string.Equals(u.Username, staff.Phone, StringComparison.OrdinalIgnoreCase) ||
+                (u.Username.StartsWith("staff", StringComparison.OrdinalIgnoreCase) && 
+                 int.TryParse(u.Username.Substring(5), out int num) && 
+                 num == staff.StaffId)
+            );
             if (user != null)
             {
                 await _userRepo.DeleteAsync(user.UserId);

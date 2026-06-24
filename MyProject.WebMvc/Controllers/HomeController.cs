@@ -40,6 +40,11 @@ namespace MyProject.WebMvc.Controllers
                 return RedirectToAction("Queue", "Appointments");
             }
 
+            if (User.IsInRole("Staff"))
+            {
+                return RedirectToAction("Index", "Appointments");
+            }
+
             if (User.IsInRole("Patient"))
             {
                 return RedirectToAction("Dashboard", "PatientPortal");

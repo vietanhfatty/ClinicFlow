@@ -68,7 +68,11 @@ public class AuthService
                 string.Equals(d.Email, user.Username, StringComparison.OrdinalIgnoreCase) ||
                 (user.Username.StartsWith("doctor", StringComparison.OrdinalIgnoreCase) && 
                  int.TryParse(user.Username.Substring(6), out int num) && 
-                 num == d.DoctorId));
+                 num == d.DoctorId) ||
+                (user.Username.StartsWith("dr.", StringComparison.OrdinalIgnoreCase) && 
+                 !string.IsNullOrEmpty(d.Email) && 
+                 d.Email.Contains('@') && 
+                 string.Equals(user.Username.Substring(3), d.Email.Split('@')[0].Split('.').LastOrDefault(), StringComparison.OrdinalIgnoreCase)));
             if (doctor != null) fullName = doctor.FullName;
         }
         else if (roleName.Equals("Staff", StringComparison.OrdinalIgnoreCase) || roleName.Equals("Receptionist", StringComparison.OrdinalIgnoreCase))

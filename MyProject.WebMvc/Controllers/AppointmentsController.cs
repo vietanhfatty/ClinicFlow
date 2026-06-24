@@ -10,21 +10,24 @@ using MyProject.Application.Services;
 
 namespace MyProject.WebMvc.Controllers;
 
-[Authorize(Roles = "Admin,Doctor")]
+[Authorize(Roles = "Admin,Doctor,Staff")]
 public class AppointmentsController : Controller
 {
     private readonly AppointmentApiService _appointmentService;
     private readonly PatientApiService _patientService;
     private readonly DoctorApiService _doctorService;
+    private readonly MedicalRecordApiService _medicalRecordService;
 
     public AppointmentsController(
         AppointmentApiService appointmentService,
         PatientApiService patientService,
-        DoctorApiService doctorService)
+        DoctorApiService doctorService,
+        MedicalRecordApiService medicalRecordService)
     {
         _appointmentService = appointmentService;
         _patientService = patientService;
         _doctorService = doctorService;
+        _medicalRecordService = medicalRecordService;
     }
 
     public async Task<IActionResult> Index()
@@ -128,18 +131,25 @@ public class AppointmentsController : Controller
     {
         var appointment = await _appointmentService.GetByIdAsync(id);
         if (appointment == null) return NotFound();
+
+        if (User.IsInRole("Doctor") || User.IsInRole("Admin") || User.IsInRole("Staff"))
+        {
+            var medicalHistory = await _medicalRecordService.GetByPatientIdAsync(appointment.PatientId);
+            ViewBag.MedicalHistory = medicalHistory.OrderByDescending(mr => mr.CreatedAt).ToList();
+        }
+
         return View(appointment);
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     public async Task<IActionResult> Create(int? patientId)
     {
         await PopulateDropdownsViewBag();
         var request = new CreateAppointmentRequest(
             PatientId: patientId ?? 0,
             DoctorId: 0,
-            AppointmentDate: DateOnly.FromDateTime(DateTime.Now),
+            AppointmentDate: DateOnly.FromDateTime(DateTime.Now.AddDays(1)), // default to tomorrow
             AppointmentTime: TimeSpan.FromHours(9),
             Status: "Pending",
             Reason: null
@@ -148,7 +158,7 @@ public class AppointmentsController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateAppointmentRequest request)
     {
@@ -179,7 +189,7 @@ public class AppointmentsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     public async Task<IActionResult> Edit(int id)
     {
         var appt = await _appointmentService.GetByIdAsync(id);
@@ -200,7 +210,7 @@ public class AppointmentsController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, UpdateAppointmentRequest request)
     {
@@ -231,7 +241,7 @@ public class AppointmentsController : Controller
     }
 
     [HttpPost, ActionName("Delete")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
@@ -268,7 +278,7 @@ public class AppointmentsController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Doctor,Admin")]
+    [Authorize(Roles = "Doctor,Admin,Staff")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Confirm(int id)
     {
@@ -335,6 +345,21 @@ public class AppointmentsController : Controller
     {
         ViewBag.Patients = await _patientService.GetAllAsync();
         ViewBag.Doctors = await _doctorService.GetAllAsync();
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Admin,Staff")]
+    public async Task<IActionResult> GetBusySlots(int doctorId, string date)
+    {
+        try
+        {
+            var busySlots = await _appointmentService.GetBusySlotsAsync(doctorId, date);
+            return Json(busySlots);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     private string GetFirstModelError()

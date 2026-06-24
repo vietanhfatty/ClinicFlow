@@ -49,8 +49,8 @@ public class AppointmentService
         var doctor = await _doctorRepo.GetByIdAsync(req.DoctorId)
             ?? throw new KeyNotFoundException($"Doctor with ID {req.DoctorId} not found");
 
-        // Ensure slot has availability (maximum 2 confirmed/in-progress/completed appointments)
-        await ValidateAppointmentLimitAsync(req.DoctorId, req.AppointmentDate, req.AppointmentTime);
+        // Ensure slot has availability
+        await ValidateAppointmentLimitAsync(req.DoctorId, req.PatientId, req.AppointmentDate, req.AppointmentTime);
 
         var status = string.IsNullOrWhiteSpace(req.Status) ? "Pending" : req.Status.Trim();
 
@@ -69,7 +69,7 @@ public class AppointmentService
 
         if (status == "Confirmed" || status == "InProgress" || status == "Completed")
         {
-            await CancelOtherPendingAppointmentsIfLimitReachedAsync(req.DoctorId, req.AppointmentDate, req.AppointmentTime);
+            await CancelOtherPendingAppointmentsIfLimitReachedAsync(req.DoctorId, req.AppointmentDate, req.AppointmentTime, appointment.AppointmentId);
         }
     }
 
@@ -87,7 +87,7 @@ public class AppointmentService
             ?? throw new KeyNotFoundException($"Doctor with ID {req.DoctorId} not found");
 
         // Validate the slot availability excluding the current appointment
-        await ValidateAppointmentLimitAsync(req.DoctorId, req.AppointmentDate, req.AppointmentTime, id);
+        await ValidateAppointmentLimitAsync(req.DoctorId, req.PatientId, req.AppointmentDate, req.AppointmentTime, id);
 
         var status = string.IsNullOrWhiteSpace(req.Status) ? "Pending" : req.Status.Trim();
 
@@ -102,7 +102,7 @@ public class AppointmentService
 
         if (status == "Confirmed" || status == "InProgress" || status == "Completed")
         {
-            await CancelOtherPendingAppointmentsIfLimitReachedAsync(req.DoctorId, req.AppointmentDate, req.AppointmentTime);
+            await CancelOtherPendingAppointmentsIfLimitReachedAsync(req.DoctorId, req.AppointmentDate, req.AppointmentTime, id);
         }
     }
 
@@ -121,12 +121,12 @@ public class AppointmentService
             throw new InvalidOperationException($"Cannot check-in. Current appointment status is '{appointment.Status}' but must be 'Pending'.");
         }
 
-        await ValidateAppointmentLimitAsync(appointment.DoctorId, appointment.AppointmentDate, appointment.AppointmentTime, id);
+        await ValidateAppointmentLimitAsync(appointment.DoctorId, appointment.PatientId, appointment.AppointmentDate, appointment.AppointmentTime, id);
 
         appointment.Status = "Confirmed";
         await _repo.UpdateAsync(appointment);
 
-        await CancelOtherPendingAppointmentsIfLimitReachedAsync(appointment.DoctorId, appointment.AppointmentDate, appointment.AppointmentTime);
+        await CancelOtherPendingAppointmentsIfLimitReachedAsync(appointment.DoctorId, appointment.AppointmentDate, appointment.AppointmentTime, id);
     }
 
     public async Task ConfirmAsync(int id)
@@ -139,12 +139,12 @@ public class AppointmentService
             throw new InvalidOperationException($"Cannot confirm. Current status is '{appointment.Status}' but must be 'Pending'.");
         }
 
-        await ValidateAppointmentLimitAsync(appointment.DoctorId, appointment.AppointmentDate, appointment.AppointmentTime, id);
+        await ValidateAppointmentLimitAsync(appointment.DoctorId, appointment.PatientId, appointment.AppointmentDate, appointment.AppointmentTime, id);
 
         appointment.Status = "Confirmed";
         await _repo.UpdateAsync(appointment);
 
-        await CancelOtherPendingAppointmentsIfLimitReachedAsync(appointment.DoctorId, appointment.AppointmentDate, appointment.AppointmentTime);
+        await CancelOtherPendingAppointmentsIfLimitReachedAsync(appointment.DoctorId, appointment.AppointmentDate, appointment.AppointmentTime, id);
     }
 
     public async Task StartExaminationAsync(int id)
@@ -194,45 +194,57 @@ public class AppointmentService
             .Select(MapToDto);
     }
 
-    private async Task ValidateAppointmentLimitAsync(int doctorId, DateOnly date, TimeSpan time, int? excludingAppointmentId = null)
+    private async Task ValidateAppointmentLimitAsync(int doctorId, int patientId, DateOnly date, TimeSpan time, int? excludingAppointmentId = null)
     {
         var list = await _repo.GetAllAsync();
-        var count = list.Count(a => 
+        var newStart = time;
+        var newEnd = newStart.Add(TimeSpan.FromMinutes(30));
+
+        // 1. Check doctor overlap
+        var doctorOverlap = list.FirstOrDefault(a => 
             a.DoctorId == doctorId && 
             a.AppointmentDate == date && 
-            a.AppointmentTime == time && 
             (excludingAppointmentId == null || a.AppointmentId != excludingAppointmentId.Value) &&
-            (a.Status == "Confirmed" || a.Status == "InProgress" || a.Status == "Completed"));
+            a.Status != "Cancelled" &&
+            (a.AppointmentTime < newEnd && newStart < a.AppointmentTime.Add(TimeSpan.FromMinutes(30))));
 
-        if (count >= 2)
+        if (doctorOverlap != null)
         {
-            throw new ArgumentException("Ca này đã được đặt full, vui lòng chọn ca khác.");
+            throw new ArgumentException($"Bác sĩ đã có lịch hẹn khác từ {doctorOverlap.AppointmentTime:hh\\:mm} đến {doctorOverlap.AppointmentTime.Add(TimeSpan.FromMinutes(30)):hh\\:mm}. Vui lòng chọn giờ khác.");
+        }
+
+        // 2. Check patient overlap
+        var patientOverlap = list.FirstOrDefault(a => 
+            a.PatientId == patientId && 
+            a.AppointmentDate == date && 
+            (excludingAppointmentId == null || a.AppointmentId != excludingAppointmentId.Value) &&
+            a.Status != "Cancelled" &&
+            (a.AppointmentTime < newEnd && newStart < a.AppointmentTime.Add(TimeSpan.FromMinutes(30))));
+
+        if (patientOverlap != null)
+        {
+            throw new ArgumentException($"Bệnh nhân đã có lịch hẹn khác từ {patientOverlap.AppointmentTime:hh\\:mm} đến {patientOverlap.AppointmentTime.Add(TimeSpan.FromMinutes(30)):hh\\:mm} trùng với ca này.");
         }
     }
 
-    private async Task CancelOtherPendingAppointmentsIfLimitReachedAsync(int doctorId, DateOnly date, TimeSpan time)
+    private async Task CancelOtherPendingAppointmentsIfLimitReachedAsync(int doctorId, DateOnly date, TimeSpan time, int excludingAppointmentId)
     {
         var list = await _repo.GetAllAsync();
-        var confirmedCount = list.Count(a => 
+        var start = time;
+        var end = start.Add(TimeSpan.FromMinutes(30));
+
+        var pendingAppointments = list.Where(a => 
             a.DoctorId == doctorId && 
             a.AppointmentDate == date && 
-            a.AppointmentTime == time && 
-            (a.Status == "Confirmed" || a.Status == "InProgress" || a.Status == "Completed"));
+            a.Status == "Pending" &&
+            a.AppointmentId != excludingAppointmentId &&
+            (a.AppointmentTime < end && start < a.AppointmentTime.Add(TimeSpan.FromMinutes(30))))
+            .ToList();
 
-        if (confirmedCount >= 2)
+        foreach (var pending in pendingAppointments)
         {
-            var pendingAppointments = list.Where(a => 
-                a.DoctorId == doctorId && 
-                a.AppointmentDate == date && 
-                a.AppointmentTime == time && 
-                a.Status == "Pending")
-                .ToList();
-
-            foreach (var pending in pendingAppointments)
-            {
-                pending.Status = "Cancelled";
-                await _repo.UpdateAsync(pending);
-            }
+            pending.Status = "Cancelled";
+            await _repo.UpdateAsync(pending);
         }
     }
 
