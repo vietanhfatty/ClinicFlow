@@ -1,0 +1,24 @@
+# User-specific files
+*.user
+*.suo
+.vs/
+
+# Build results
+bin/
+obj/
+
+# Config files (chứa thông tin nhạy cảm)
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+
+# Config files
+**/appsettings.json
+**/appsettings.*.json
+
+# Build output (bin cũng đang bị track kìa)
+**/bin/
+**/obj/
+# Hoặc nếu chỉ muốn ignore file cụ thể
+# secrets.json
+# connectionStrings.config
