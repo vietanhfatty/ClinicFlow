@@ -45,6 +45,7 @@ builder.Services.AddScoped<DoctorApiService>();
 builder.Services.AddScoped<AppointmentApiService>();
 builder.Services.AddScoped<MedicalRecordApiService>();
 builder.Services.AddScoped<StaffApiService>();
+builder.Services.AddScoped<StatisticsApiService>();
 
 // Register Cookie Authentication
 builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
@@ -67,6 +68,7 @@ builder.Services.AddHttpClient("WebApiClient", client =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
@@ -89,5 +91,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapRazorPages();
 
 app.Run();

@@ -1,0 +1,152 @@
+@page
+@model MyProject.WebMvc.Pages.Statistics.DoctorWorkloadModel
+
+@{
+    ViewData["Title"] = "Doctor Workload";
+    var workload = Model.Workload;
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-slate-800 fw-bold">Doctor Workload</h1>
+            <p class="text-muted small mb-0">Today's appointment load and weekly summary per doctor.</p>
+        </div>
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-page="/Statistics/Index" class="btn btn-outline-primary btn-sm">
+                <i class="fa-solid fa-chart-pie me-1"></i> Hospital Statistics
+            </a>
+        }
+    </div>
+
+    <div class="stat-card-row">
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-green">
+                <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">Total Doctors</span>
+                <span class="stat-card-value">@workload.TotalDoctors</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-blue">
+                <i class="fa-solid fa-calendar-day"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">Today's Appointments</span>
+                <span class="stat-card-value">@workload.TotalTodayAppointments</span>
+            </div>
+            <span class="stat-card-trend trend-neutral">Today</span>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-orange">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">Pending Today</span>
+                <span class="stat-card-value">@workload.TotalPendingToday</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-purple">
+                <i class="fa-solid fa-stethoscope"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">In Progress</span>
+                <span class="stat-card-value">@workload.TotalInProgressToday</span>
+            </div>
+            <span class="stat-card-trend trend-live">Live</span>
+        </div>
+    </div>
+
+    <div class="modern-card modern-table-card">
+        <div class="modern-table-header">
+            <h5 class="modern-table-title">Doctor Workload Overview</h5>
+            <span class="text-muted" style="font-size: 12px;">@workload.TotalCompletedToday completed today</span>
+        </div>
+        <div class="table-responsive">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Doctor</th>
+                        <th>Specialization</th>
+                        <th>Status</th>
+                        <th class="text-center">Today</th>
+                        <th class="text-center">Pending</th>
+                        <th class="text-center">Confirmed</th>
+                        <th class="text-center">In Progress</th>
+                        <th class="text-center">Completed</th>
+                        <th class="text-center">This Week</th>
+                        <th class="text-center">Total</th>
+                        <th style="min-width: 140px;">Load Today</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!workload.Doctors.Any())
+                    {
+                        <tr>
+                            <td colspan="11" class="text-center py-5 text-muted">No doctor data available.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var doctor in workload.Doctors)
+                        {
+                            var loadClass = doctor.WorkloadPercentage switch
+                            {
+                                >= 80 => "bg-danger",
+                                >= 50 => "bg-warning",
+                                > 0 => "bg-success",
+                                _ => "bg-secondary"
+                            };
+
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-circle avatar-blue" style="width: 32px; height: 32px; font-size: 11px;">
+                                            @(doctor.DoctorName.Length > 0 ? doctor.DoctorName[0].ToString().ToUpper() : "D")
+                                        </div>
+                                        <span class="fw-semibold">Dr. @doctor.DoctorName</span>
+                                    </div>
+                                </td>
+                                <td>@doctor.Specialization</td>
+                                <td>
+                                    @if (doctor.IsActive)
+                                    {
+                                        <span class="modern-badge badge-active">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="modern-badge badge-scheduled">Inactive</span>
+                                    }
+                                </td>
+                                <td class="text-center fw-bold">@doctor.TodayTotal</td>
+                                <td class="text-center">@doctor.TodayPending</td>
+                                <td class="text-center">@doctor.TodayConfirmed</td>
+                                <td class="text-center">@doctor.TodayInProgress</td>
+                                <td class="text-center">@doctor.TodayCompleted</td>
+                                <td class="text-center">@doctor.WeekTotal</td>
+                                <td class="text-center text-muted">@doctor.TotalAppointments</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 8px; border-radius: 4px;">
+                                            <div class="progress-bar @loadClass" role="progressbar"
+                                                 style="width: @doctor.WorkloadPercentage%;"
+                                                 aria-valuenow="@doctor.WorkloadPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <span class="text-muted" style="font-size: 11px; min-width: 32px;">@doctor.WorkloadPercentage%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

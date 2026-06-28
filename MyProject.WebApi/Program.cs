@@ -30,6 +30,7 @@ builder.Services.AddScoped<AppointmentService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<MedicalRecordService>();
 builder.Services.AddScoped<StaffService>();
+builder.Services.AddScoped<StatisticsService>();
 
 // Add Data Protection to share authentication cookies with WebMvc
 builder.Services.AddDataProtection()
