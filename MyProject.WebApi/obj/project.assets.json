@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
     "net8.0": {
       "Azure.Core/1.38.0": {
@@ -5795,23 +5795,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\admin\\.nuget\\packages\\": {},
-    "D:\\Visual Studio\\Share\\NuGetPackages": {}
+    "C:\\Users\\Admin\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\PRN212_demo\\232\\Project_PRN232\\MyProject.WebApi\\MyProject.WebApi.csproj",
+      "projectUniqueName": "C:\\Users\\Admin\\Desktop\\PRN232\\PRN232_PRJ\\MyProject.WebApi\\MyProject.WebApi.csproj",
       "projectName": "MyProject.WebApi",
-      "projectPath": "D:\\PRN212_demo\\232\\Project_PRN232\\MyProject.WebApi\\MyProject.WebApi.csproj",
-      "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-      "outputPath": "D:\\PRN212_demo\\232\\Project_PRN232\\MyProject.WebApi\\obj\\",
+      "projectPath": "C:\\Users\\Admin\\Desktop\\PRN232\\PRN232_PRJ\\MyProject.WebApi\\MyProject.WebApi.csproj",
+      "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Admin\\Desktop\\PRN232\\PRN232_PRJ\\MyProject.WebApi\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "D:\\Visual Studio\\Share\\NuGetPackages"
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -5824,13 +5824,14 @@
       },
       "frameworks": {
         "net8.0": {
+          "framework": "net8.0",
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\PRN212_demo\\232\\Project_PRN232\\MyProject.Application\\MyProject.Application.csproj": {
-              "projectPath": "D:\\PRN212_demo\\232\\Project_PRN232\\MyProject.Application\\MyProject.Application.csproj"
+            "C:\\Users\\Admin\\Desktop\\PRN232\\PRN232_PRJ\\MyProject.Application\\MyProject.Application.csproj": {
+              "projectPath": "C:\\Users\\Admin\\Desktop\\PRN232\\PRN232_PRJ\\MyProject.Application\\MyProject.Application.csproj"
             },
-            "D:\\PRN212_demo\\232\\Project_PRN232\\MyProject.Infrastructure\\MyProject.Infrastructure.csproj": {
-              "projectPath": "D:\\PRN212_demo\\232\\Project_PRN232\\MyProject.Infrastructure\\MyProject.Infrastructure.csproj"
+            "C:\\Users\\Admin\\Desktop\\PRN232\\PRN232_PRJ\\MyProject.Infrastructure\\MyProject.Infrastructure.csproj": {
+              "projectPath": "C:\\Users\\Admin\\Desktop\\PRN232\\PRN232_PRJ\\MyProject.Infrastructure\\MyProject.Infrastructure.csproj"
             }
           }
         }
@@ -5845,10 +5846,11 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "net8.0": {
+        "framework": "net8.0",
         "targetAlias": "net8.0",
         "dependencies": {
           "Microsoft.AspNetCore.OData": {
@@ -5885,7 +5887,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.312/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.301/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

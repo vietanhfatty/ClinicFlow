@@ -617,6 +617,26 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "MyProject.WebApi.Controllers.StatisticsController",
+    "Method": "GetDoctorWorkload",
+    "RelativePath": "api/Statistics/doctor-workload",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "MyProject.WebApi.Controllers.StatisticsController",
+    "Method": "GetHospitalStatistics",
+    "RelativePath": "api/Statistics/hospital",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "MyProject.WebApi.Controllers.WeatherForecastController",
     "Method": "Get",
     "RelativePath": "WeatherForecast",

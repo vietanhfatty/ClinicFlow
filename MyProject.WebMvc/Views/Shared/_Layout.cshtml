@@ -25,6 +25,7 @@
                 }
             }
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Staff";
+            var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
 
             <aside class="sidebar-nav">
                 <a class="brand-logo" asp-controller="Home" asp-action="Index">
@@ -47,6 +48,11 @@
                                     <i class="fa-solid fa-chart-line"></i> Dashboard
                                 </a>
                             </li>
+                            <li class="nav-menu-item">
+                                <a class="nav-menu-link @(currentPage == "/Statistics/Index" ? "active" : "")" asp-page="/Statistics/Index">
+                                    <i class="fa-solid fa-chart-pie"></i> Statistics
+                                </a>
+                            </li>
                         }
                         <li class="nav-menu-item">
                             <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Patients" ? "active" : "")" asp-controller="Patients" asp-action="Index">
@@ -64,6 +70,11 @@
                         <li class="nav-menu-item">
                             <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Appointments" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Appointments" asp-action="Index">
                                 <i class="fa-solid fa-calendar-check"></i> Appointments
+                            </a>
+                        </li>
+                        <li class="nav-menu-item">
+                            <a class="nav-menu-link @(currentPage == "/Statistics/DoctorWorkload" ? "active" : "")" asp-page="/Statistics/DoctorWorkload">
+                                <i class="fa-solid fa-briefcase-medical"></i> Doctor Workload
                             </a>
                         </li>
                         @if (User.IsInRole("Admin"))

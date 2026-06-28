@@ -1,0 +1,246 @@
+@page
+@model MyProject.WebMvc.Pages.Statistics.IndexModel
+
+@{
+    ViewData["Title"] = "Hospital Statistics";
+    var stats = Model.Statistics;
+    var maxMonthly = stats.MonthlyAppointments.Any() ? stats.MonthlyAppointments.Max(m => m.Count) : 1;
+    if (maxMonthly == 0) { maxMonthly = 1; }
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-slate-800 fw-bold">Hospital Statistics</h1>
+            <p class="text-muted small mb-0">Comprehensive overview of Central Hospital operations and performance.</p>
+        </div>
+        <span class="modern-badge badge-active">
+            <i class="fa-solid fa-shield-halved" style="font-size: 10px;"></i> Admin Only
+        </span>
+        <a asp-page="/Statistics/DoctorWorkload" class="btn btn-outline-primary btn-sm ms-2">
+            <i class="fa-solid fa-briefcase-medical me-1"></i> Doctor Workload
+        </a>
+    </div>
+
+    <div class="stat-card-row">
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-blue">
+                <i class="fa-solid fa-user-injured"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">Total Patients</span>
+                <span class="stat-card-value">@stats.TotalPatients</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-green">
+                <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">Doctors</span>
+                <span class="stat-card-value">@stats.ActiveDoctors / @stats.TotalDoctors</span>
+            </div>
+            <span class="stat-card-trend trend-up">Active</span>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-purple">
+                <i class="fa-solid fa-users-cog"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">Staff Members</span>
+                <span class="stat-card-value">@stats.TotalStaff</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-orange">
+                <i class="fa-solid fa-file-medical"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">Medical Records</span>
+                <span class="stat-card-value">@stats.TotalMedicalRecords</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card-row">
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-blue">
+                <i class="fa-solid fa-calendar-days"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">Total Appointments</span>
+                <span class="stat-card-value">@stats.TotalAppointments</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-green">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">Today</span>
+                <span class="stat-card-value">@stats.TodayAppointments</span>
+            </div>
+            <span class="stat-card-trend trend-neutral">Today</span>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-purple">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">Completed</span>
+                <span class="stat-card-value">@stats.CompletedAppointments</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon-wrapper icon-orange">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="stat-card-info">
+                <span class="stat-card-label">Pending</span>
+                <span class="stat-card-value">@stats.PendingAppointments</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="modern-card modern-table-card">
+            <div class="modern-table-header">
+                <h5 class="modern-table-title">Appointments by Status</h5>
+            </div>
+            <div class="p-4">
+                @if (!stats.AppointmentsByStatus.Any())
+                {
+                    <p class="text-muted text-center mb-0">No appointment data available.</p>
+                }
+                else
+                {
+                    @foreach (var item in stats.AppointmentsByStatus)
+                    {
+                        var barClass = item.Status switch
+                        {
+                            "Completed" => "bg-success",
+                            "Pending" => "bg-warning",
+                            "Cancelled" => "bg-danger",
+                            "InProgress" => "bg-info",
+                            "Confirmed" => "bg-primary",
+                            _ => "bg-secondary"
+                        };
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-semibold" style="font-size: 13px;">@item.Status</span>
+                                <span class="text-muted" style="font-size: 12px;">@item.Count (@item.Percentage%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress-bar @barClass" role="progressbar"
+                                     style="width: @item.Percentage%;" aria-valuenow="@item.Percentage" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="modern-card modern-table-card">
+            <div class="modern-table-header">
+                <h5 class="modern-table-title">Monthly Appointments (Last 6 Months)</h5>
+            </div>
+            <div class="p-4">
+                @foreach (var item in stats.MonthlyAppointments)
+                {
+                    var barWidth = Math.Round(item.Count * 100.0 / maxMonthly, 1);
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-semibold" style="font-size: 13px;">@item.MonthLabel</span>
+                            <span class="text-muted" style="font-size: 12px;">@item.Count</span>
+                        </div>
+                        <div class="progress" style="height: 8px; border-radius: 4px;">
+                            <div class="progress-bar bg-primary" role="progressbar"
+                                 style="width: @barWidth%;" aria-valuenow="@barWidth" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid mt-4">
+        <div class="modern-card modern-table-card">
+            <div class="modern-table-header">
+                <h5 class="modern-table-title">Doctors by Specialization</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Specialization</th>
+                            <th class="text-end">Doctors</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!stats.DoctorsBySpecialization.Any())
+                        {
+                            <tr>
+                                <td colspan="2" class="text-center py-4 text-muted">No doctor data available.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in stats.DoctorsBySpecialization)
+                            {
+                                <tr>
+                                    <td>
+                                        <i class="fa-solid fa-stethoscope me-2 text-muted"></i>@item.Specialization
+                                    </td>
+                                    <td class="text-end fw-bold">@item.Count</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="modern-card modern-table-card">
+            <div class="modern-table-header">
+                <h5 class="modern-table-title">Top Doctors by Appointments</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Doctor</th>
+                            <th>Specialization</th>
+                            <th class="text-end">Appointments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!stats.TopDoctorsByAppointments.Any())
+                        {
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">No appointment data available.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in stats.TopDoctorsByAppointments)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">Dr. @item.DoctorName</td>
+                                    <td>@item.Specialization</td>
+                                    <td class="text-end fw-bold">@item.AppointmentCount</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
