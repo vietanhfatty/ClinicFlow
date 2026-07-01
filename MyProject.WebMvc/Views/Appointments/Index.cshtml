@@ -90,6 +90,7 @@
                             <th class="ps-4">ID</th>
                             <th>Patient Name</th>
                             <th>Doctor Name</th>
+                            <th>Staff Created</th>
                             <th>Date</th>
                             <th>Time</th>
                             <th>Status</th>
@@ -107,6 +108,7 @@
                                 <td class="ps-4 fw-bold text-secondary">#@item.AppointmentId</td>
                                 <td class="fw-bold text-dark appt-patient">@item.PatientName</td>
                                 <td class="appt-doctor">@item.DoctorName</td>
+                                <td class="text-secondary small">@(item.StaffName ?? "Online Booking")</td>
                                 <td>@item.AppointmentDate.ToString("yyyy-MM-dd")</td>
                                 <td>@apptTimeStr</td>
                                 <td>
