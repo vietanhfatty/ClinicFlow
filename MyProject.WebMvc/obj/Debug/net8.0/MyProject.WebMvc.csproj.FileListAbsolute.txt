@@ -187,4 +187,3 @@ C:\Users\Admin\Desktop\PRN232\PRN232_PRJ\MyProject.WebMvc\obj\Debug\net8.0\refin
 C:\Users\Admin\Desktop\PRN232\PRN232_PRJ\MyProject.WebMvc\obj\Debug\net8.0\MyProject.WebMvc.pdb
 C:\Users\Admin\Desktop\PRN232\PRN232_PRJ\MyProject.WebMvc\obj\Debug\net8.0\MyProject.WebMvc.genruntimeconfig.cache
 C:\Users\Admin\Desktop\PRN232\PRN232_PRJ\MyProject.WebMvc\obj\Debug\net8.0\ref\MyProject.WebMvc.dll
-C:\Users\Admin\Desktop\PRN232\PRN232_PRJ\MyProject.WebMvc\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

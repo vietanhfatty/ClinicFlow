@@ -9,6 +9,8 @@ public record AppointmentDto(
     string PatientName,
     int DoctorId,
     string DoctorName,
+    int? StaffId,
+    string? StaffName,
     DateOnly AppointmentDate,
     TimeSpan AppointmentTime,
     string Status,

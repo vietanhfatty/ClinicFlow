@@ -256,6 +256,8 @@ public class AppointmentService
             a.Patient != null ? a.Patient.FullName : "Unknown Patient",
             a.DoctorId,
             a.Doctor != null ? a.Doctor.FullName : "Unknown Doctor",
+            a.StaffId,
+            a.Staff != null ? a.Staff.FullName : null,
             a.AppointmentDate,
             a.AppointmentTime,
             a.Status,
