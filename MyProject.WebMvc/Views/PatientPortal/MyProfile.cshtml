@@ -131,6 +131,53 @@
                     </div>
                 </form>
             </div>
+
+            <!-- Change Password Section -->
+            <div class="card shadow-sm border-0 rounded-4 bg-white p-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center @(ViewData.ModelState.IsValid ? "" : "mb-2")" role="button" data-bs-toggle="collapse" data-bs-target="#changePasswordSection" aria-expanded="false" aria-controls="changePasswordSection">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-key text-info me-2"></i>Change Password</h5>
+                        <p class="text-muted small mb-0">Update the password used to sign in to your account.</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-muted"></i>
+                </div>
+
+                <div class="collapse mt-3" id="changePasswordSection">
+                    <form asp-controller="Account" asp-action="ChangePassword" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label for="CurrentPassword" class="form-label fw-bold text-muted small">Current Password*</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock text-muted"></i></span>
+                                <input type="password" id="CurrentPassword" name="CurrentPassword" class="form-control border-start-0 rounded-end-3" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="NewPassword" class="form-label fw-bold text-muted small">New Password*</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-key text-muted"></i></span>
+                                <input type="password" id="NewPassword" name="NewPassword" class="form-control border-start-0 rounded-end-3" minlength="6" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="ConfirmPassword" class="form-label fw-bold text-muted small">Confirm New Password*</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-key text-muted"></i></span>
+                                <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control border-start-0 rounded-end-3" minlength="6" required />
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-outline-info rounded-pill py-2 fw-bold">
+                                Update Password <i class="fa-solid fa-check ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

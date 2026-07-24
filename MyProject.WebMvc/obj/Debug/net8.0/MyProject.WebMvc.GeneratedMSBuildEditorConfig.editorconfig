@@ -12,161 +12,161 @@ build_property.EntryPointFilePath =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = MyProject.WebMvc
 build_property.RootNamespace = MyProject.WebMvc
-build_property.ProjectDir = C:\Users\Admin\Desktop\PRN232\PRN232_PRJ\MyProject.WebMvc\
+build_property.ProjectDir = D:\PRN212_demo\232\PRN232_PRJ\MyProject.WebMvc\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\Admin\Desktop\PRN232\PRN232_PRJ\MyProject.WebMvc
+build_property.MSBuildProjectDirectory = D:\PRN212_demo\232\PRN232_PRJ\MyProject.WebMvc
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Pages/Statistics/DoctorWorkload.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Pages/Statistics/DoctorWorkload.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU3RhdGlzdGljc1xEb2N0b3JXb3JrbG9hZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Pages/Statistics/Index.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Pages/Statistics/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU3RhdGlzdGljc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Pages/_ViewImports.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Pages/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Pages/_ViewStart.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Pages/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Account/AccessDenied.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Account/AccessDenied.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxBY2Nlc3NEZW5pZWQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Account/Login.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Account/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Account/Register.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Account/Register.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/Create.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRzXENyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/Details.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRzXERldGFpbHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/Edit.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRzXEVkaXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/Index.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRzXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/MyAppointments.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/MyAppointments.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRzXE15QXBwb2ludG1lbnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/MySchedule.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/MySchedule.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRzXE15U2NoZWR1bGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/Queue.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Appointments/Queue.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRzXFF1ZXVlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Doctors/Index.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Doctors/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdG9yc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Home/Index.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Home/Privacy.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/MedicalRecords/Create.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/MedicalRecords/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVkaWNhbFJlY29yZHNcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/MedicalRecords/Details.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/MedicalRecords/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVkaWNhbFJlY29yZHNcRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/MedicalRecords/Index.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/MedicalRecords/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVkaWNhbFJlY29yZHNcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/PatientPortal/BookAppointment.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/PatientPortal/BookAppointment.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF0aWVudFBvcnRhbFxCb29rQXBwb2ludG1lbnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/PatientPortal/Dashboard.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/PatientPortal/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF0aWVudFBvcnRhbFxEYXNoYm9hcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/PatientPortal/MyHistory.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/PatientPortal/MyHistory.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF0aWVudFBvcnRhbFxNeUhpc3RvcnkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/PatientPortal/MyMedicalRecords.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/PatientPortal/MyMedicalRecords.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF0aWVudFBvcnRhbFxNeU1lZGljYWxSZWNvcmRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/PatientPortal/MyProfile.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/PatientPortal/MyProfile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF0aWVudFBvcnRhbFxNeVByb2ZpbGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Patients/Details.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Patients/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF0aWVudHNcRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Patients/Index.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Patients/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF0aWVudHNcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Roles/Create.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Roles/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUm9sZXNcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Roles/Delete.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Roles/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUm9sZXNcRGVsZXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Roles/Edit.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Roles/Edit.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUm9sZXNcRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Roles/Index.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Roles/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUm9sZXNcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Shared/Error.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Shared/_ValidationScriptsPartial.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Staff/Index.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Staff/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3RhZmZcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/_ViewImports.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/_ViewStart.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Desktop/PRN232/PRN232_PRJ/MyProject.WebMvc/Views/Shared/_Layout.cshtml]
+[D:/PRN212_demo/232/PRN232_PRJ/MyProject.WebMvc/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-5g7crm4pqz

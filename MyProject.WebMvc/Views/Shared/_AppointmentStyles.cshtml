@@ -1,0 +1,214 @@
+@*
+    Shared CSS styles for Appointment pages
+    Provides consistent styling across all appointment-related views
+*@
+
+<style>
+    /* ============================================
+       APPOINTMENT PAGES - SHARED STYLES
+       ============================================ */
+
+    /* Color Variables - Success/Green Theme */
+    :root {
+        --appt-accent: #2e7d32;
+        --appt-accent-light: #e8f5e9;
+        --appt-accent-hover: #1b5e20;
+    }
+
+    /* Step Card Styling */
+    .wizard-step-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+        transition: all 0.3s ease;
+    }
+
+    .wizard-step-card .card-header {
+        background-color: white;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .step-number {
+        background-color: var(--appt-accent-light);
+        color: var(--appt-accent);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-right: 12px;
+    }
+
+    /* Patient Search Styling */
+    .search-result-item {
+        cursor: pointer;
+        padding: 10px 15px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .search-result-item:hover {
+        background-color: #f0f4f9;
+        color: var(--appt-accent);
+    }
+
+    .patient-selected-badge {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: #198754;
+        border: 1px solid rgba(25, 135, 84, 0.2);
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    /* Table Header Styling */
+    .table-appointment thead th {
+        text-transform: uppercase;
+        font-family: monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        font-weight: 600;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    /* Badge Consistency */
+    .badge-pending {
+        background-color: #fff3cd !important;
+        color: #856404 !important;
+        border: 1px solid #fff3cd !important;
+    }
+
+    .badge-confirmed {
+        background-color: #cff4fc !important;
+        color: #0d6670 !important;
+        border: 1px solid #cff4fc !important;
+    }
+
+    .badge-completed {
+        background-color: #d1e7dd !important;
+        color: #146c43 !important;
+        border: 1px solid #d1e7dd !important;
+    }
+
+    .badge-cancelled {
+        background-color: #f8d7da !important;
+        color: #842029 !important;
+        border: 1px solid #f8d7da !important;
+    }
+
+    /* Card Header Consistency */
+    .appt-card-header {
+        background: white;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 1rem 1.5rem;
+    }
+
+    .appt-card-header h5,
+    .appt-card-header h6 {
+        color: var(--appt-accent);
+        margin: 0;
+    }
+
+    /* Filter Bar Styling */
+    .filter-bar .form-control,
+    .filter-bar .form-select {
+        border-radius: 0.75rem;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 1rem;
+    }
+
+    .filter-bar .form-control:focus,
+    .filter-bar .form-select:focus {
+        border-color: var(--appt-accent);
+        box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.15);
+    }
+
+    /* Quick Date Filter Buttons */
+    .quick-filter-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    /* Form Labels */
+    .form-label.appt-label {
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Info Alert Styling */
+    .alert-appt-info {
+        background-color: #cff4fc;
+        border: none;
+        border-radius: 0.75rem;
+        color: #0d6670;
+        font-size: 0.875rem;
+    }
+
+    /* ============================================
+       EXAMINATION PAGE STYLES
+       ============================================ */
+
+    /* Tab navigation styling */
+    #examTabs .nav-link {
+        color: #6c757d;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    #examTabs .nav-link:hover {
+        color: var(--appt-accent);
+        background-color: var(--appt-accent-light);
+    }
+
+    #examTabs .nav-link.active {
+        color: white;
+        background-color: var(--appt-accent);
+        border: none;
+        border-radius: 0.5rem;
+    }
+
+    #examTabs .nav-link i {
+        margin-right: 4px;
+    }
+
+    /* Tab content area */
+    .tab-content .tab-pane {
+        animation: fadeInExamination 0.2s ease-in-out;
+    }
+
+    @@keyframes fadeInExamination {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Examination info small labels */
+    .exam-info-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #adb5bd;
+    }
+
+    /* Patient avatar in examination */
+    .exam-patient-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: var(--appt-accent-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>

@@ -20,4 +20,6 @@ public partial class User
     public DateTime? UpdatedAt { get; set; }
 
     public virtual Role Role { get; set; } = null!;
+
+    public virtual Patient? Patient { get; set; }
 }

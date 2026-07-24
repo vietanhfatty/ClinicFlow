@@ -19,12 +19,14 @@ public class PatientRepository : IPatientRepository
     public async Task<IEnumerable<Patient>> GetAllAsync()
     {
         return await _context.Patients
+            .Include(p => p.User)
             .ToListAsync();
     }
 
     public async Task<Patient?> GetByIdAsync(int id)
     {
         return await _context.Patients
+            .Include(p => p.User)
             .FirstOrDefaultAsync(p => p.PatientId == id);
     }
 

@@ -15,7 +15,7 @@
     <!-- Appointment Reference Header -->
     <div class="card shadow-sm border-0 rounded-4 bg-white p-4 mb-4">
         <div class="row align-items-center">
-            <div class="col-md-9">
+            <div class="col-md-12">
                 <span class="badge bg-success rounded-pill px-3 py-2 mb-2"><i class="fa-solid fa-check me-1"></i> APPOINTMENT COMPLETED</span>
                 <h3 class="fw-bold text-dark mb-1">Create Medical File & Prescription</h3>
                 <p class="text-muted small mb-0">
@@ -23,9 +23,6 @@
                     Date: <strong>@(appt?.AppointmentDate.ToString("yyyy-MM-dd") ?? "Today")</strong> | 
                     Attending: <strong>@(appt?.DoctorName ?? "Physician")</strong>
                 </p>
-            </div>
-            <div class="col-md-3 text-md-end mt-3 mt-md-0">
-                <div class="font-monospace text-muted small">ID: #@(appt?.AppointmentId ?? 0)</div>
             </div>
         </div>
     </div>

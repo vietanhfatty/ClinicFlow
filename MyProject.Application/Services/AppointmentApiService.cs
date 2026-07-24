@@ -87,6 +87,13 @@ public class AppointmentApiService
         await ThrowIfErrorAsync(response);
     }
 
+    public async Task CreateWalkInAsync(CreateWalkInRequest request)
+    {
+        var client = GetClient();
+        var response = await client.PostAsJsonAsync("appointments/walkin", request);
+        await ThrowIfErrorAsync(response);
+    }
+
     public async Task<List<AppointmentDto>> GetByPatientAsync(int patientId)
     {
         var client = GetClient();
@@ -110,8 +117,18 @@ public class AppointmentApiService
         try
         {
             using var doc = JsonDocument.Parse(body);
-            if (doc.RootElement.TryGetProperty("Message", out var msg))
-                throw new ArgumentException(msg.GetString());
+            if (doc.RootElement.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                {
+                    if (string.Equals(prop.Name, "Message", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var text = prop.Value.GetString();
+                        if (!string.IsNullOrWhiteSpace(text))
+                            throw new ArgumentException(text);
+                    }
+                }
+            }
         }
         catch (ArgumentException) { throw; }
         catch { }

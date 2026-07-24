@@ -1,16 +1,24 @@
+using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
+using Microsoft.IdentityModel.Tokens;
 using MyProject.Domain.Entities;
 using MyProject.Domain.IRepositories;
 using MyProject.Infrastructure.Repositories;
 using MyProject.Application.Services;
-using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add DbContext
 builder.Services.AddDbContext<HospitalManagementDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection") 
+        ?? "Server=VIETANHFATTY\\SQLEXPRESS;uid=sa;password=1234567890;database=HospitalManagementDB;Encrypt=True;TrustServerCertificate=True;",
+        sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)));
 
 // Register Repositories
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
@@ -21,6 +29,17 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
 builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<ILabTestServiceRepository, LabTestServiceRepository>();
+builder.Services.AddScoped<IAppointmentLabTestRepository, AppointmentLabTestRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+
+// Register HttpClient factory (used by LabTestApiService and other API client services)
+builder.Services.AddHttpClient("WebApiClient", client =>
+{
+    var baseUrl = builder.Configuration["WebApiClient:BaseUrl"] ?? "https://localhost:7001/api/";
+    client.BaseAddress = new Uri(baseUrl);
+});
 
 // Register Services
 builder.Services.AddScoped<RoleService>();
@@ -31,16 +50,38 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<MedicalRecordService>();
 builder.Services.AddScoped<StaffService>();
 builder.Services.AddScoped<StatisticsService>();
+builder.Services.AddScoped<MyProject.Application.Services.LabTestService>();
+builder.Services.AddScoped<LabTestApiService>();
+builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<PatientMedicalRecordService>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddSingleton<JwtTokenService>();
 
-// Add Data Protection to share authentication cookies with WebMvc
-builder.Services.AddDataProtection()
-    .SetApplicationName("HospitalManagementSharedApp");
+// Queue settings + background service that marks overdue appointments as "Late"
+builder.Services.Configure<MyProject.Application.Configuration.QueueSettings>(
+    builder.Configuration.GetSection("QueueSettings"));
+builder.Services.AddHostedService<MyProject.WebApi.BackgroundServices.LateAppointmentBackgroundService>();
 
-// Register Cookie Authentication
-builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+// Register JWT Bearer Authentication
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Jwt:Key is not configured.");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "HospitalManagementApi";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "HospitalManagementClient";
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        options.ExpireTimeSpan = System.TimeSpan.FromMinutes(60);
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
     });
 
 builder.Services.AddControllers()

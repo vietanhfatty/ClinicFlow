@@ -1,117 +1,106 @@
 @model IEnumerable<MyProject.Application.DTOs.AppointmentDto>
 
 @{
-    ViewData["Title"] = "My Appointments";
-    var doctorName = ViewBag.DoctorName as string ?? "Doctor";
+    ViewData["Title"] = "Lịch khám của tôi";
+    var doctorName = ViewBag.DoctorName as string ?? "Bác sĩ";
 }
+
+<partial name="~/Views/Shared/_AppointmentStyles.cshtml" />
 
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0 text-gray-800">My Appointments</h1>
-            <p class="text-muted small mb-0">Overview of all appointments assigned to Dr. @doctorName</p>
+            <h3 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-calendar-alt text-success me-2"></i>Lịch khám của tôi
+            </h3>
+            <p class="text-muted small mb-0">Tổng quan các lịch hẹn được phân công cho BS. @doctorName</p>
         </div>
         <div>
             <a asp-action="Queue" class="btn btn-success shadow-sm rounded-pill px-4">
-                <i class="fa-solid fa-people-queue me-1"></i> My Waiting Queue
+                <i class="fa-solid fa-people-queue me-1"></i> Hàng chờ của tôi
             </a>
         </div>
     </div>
 
-    <!-- Advanced filters bar -->
-    <div class="card shadow-sm border-0 rounded-4 mb-4">
+    <!-- Filter Bar -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4 filter-bar">
         <div class="card-body p-3">
             <div class="row g-3 align-items-end">
-                <!-- Patient Name search -->
-                <div class="col-md-3">
-                    <label for="patientSearchInput" class="form-label fw-bold small text-muted">Search Patient</label>
+                <div class="col-md-4">
+                    <label for="patientSearchInput" class="form-label appt-label">Tìm bệnh nhân</label>
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0">
                             <i class="fa-solid fa-user text-muted"></i>
                         </span>
-                        <input type="text" id="patientSearchInput" class="form-control border-start-0 rounded-end-3" placeholder="Search patient name..." />
+                        <input type="text" id="patientSearchInput" class="form-control border-start-0" 
+                               placeholder="Nhập tên bệnh nhân..." />
                     </div>
                 </div>
 
-                <!-- Status select dropdown -->
-                <div class="col-md-3">
-                    <label for="statusFilterSelect" class="form-label fw-bold small text-muted">Filter Status</label>
-                    <select id="statusFilterSelect" class="form-select rounded-3">
-                        <option value="">All Statuses</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Confirmed">Confirmed</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
-                    </select>
-                </div>
-
-                <!-- Date Picker -->
-                <div class="col-md-3">
-                    <label for="dateFilterInput" class="form-label fw-bold small text-muted">Filter Date</label>
+                <div class="col-md-4">
+                    <label for="dateFilterInput" class="form-label appt-label">Lọc theo ngày</label>
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0">
                             <i class="fa-solid fa-calendar text-muted"></i>
                         </span>
-                        <input type="date" id="dateFilterInput" class="form-control border-start-0 rounded-end-3" />
+                        <input type="date" id="dateFilterInput" class="form-control border-start-0" />
                     </div>
                 </div>
 
-                <!-- Quick Date Filters -->
-                <div class="col-md-3">
-                    <label class="form-label fw-bold small text-muted d-block">Quick Date Filters</label>
+                <div class="col-md-4">
+                    <label class="form-label appt-label d-block">Lọc nhanh theo ngày</label>
                     <div class="btn-group w-100" role="group">
-                        <button type="button" id="btnFilterAll" class="btn btn-outline-primary px-2 py-2 text-nowrap">All</button>
-                        <button type="button" id="btnFilterToday" class="btn btn-outline-primary px-2 py-2 text-nowrap">Today</button>
-                        <button type="button" id="btnFilterTomorrow" class="btn btn-outline-primary px-2 py-2 text-nowrap">Tomorrow</button>
-                        <button type="button" id="btnFilterThisWeek" class="btn btn-outline-primary px-2 py-2 text-nowrap">This Week</button>
+                        <button type="button" id="btnFilterAll" class="btn btn-outline-primary quick-filter-btn">Tất cả</button>
+                        <button type="button" id="btnFilterToday" class="btn btn-outline-primary quick-filter-btn">Hôm nay</button>
+                        <button type="button" id="btnFilterTomorrow" class="btn btn-outline-primary quick-filter-btn">Ngày mai</button>
+                        <button type="button" id="btnFilterThisWeek" class="btn btn-outline-primary quick-filter-btn">Tuần này</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Appointments Table -->
     <div class="card shadow-sm border-0 rounded-4 mb-4">
-        <div class="card-header bg-white py-3">
-            <h6 class="m-0 fw-bold text-primary">Appointment Bookings (@Model.Count() records)</h6>
+        <div class="card-header appt-card-header">
+            <h6 class="m-0 fw-bold">Danh sách lịch hẹn (@Model.Count() bản ghi)</h6>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="appointmentTable">
-                    <thead class="table-light text-uppercase font-monospace fs-7">
+                <table class="table table-hover align-middle mb-0 table-appointment" id="appointmentTable">
+                    <thead>
                         <tr>
-                            <th class="ps-4">ID</th>
-                            <th>Patient Name</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Status</th>
-                            <th>Reason</th>
-                            <th class="text-end pe-4">Actions</th>
+                            <th class="ps-4">Bệnh nhân</th>
+                            <th>Ngày</th>
+                            <th>Giờ</th>
+                            <th>Trạng thái</th>
+                            <th>Lý do</th>
+                            <th class="text-end pe-4">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            <tr class="appt-row" data-status="@item.Status" data-date="@item.AppointmentDate.ToString("yyyy-MM-dd")">
-                                <td class="ps-4 fw-bold text-secondary">#@item.AppointmentId</td>
-                                <td class="fw-bold text-dark appt-patient">@item.PatientName</td>
+                            <tr class="appt-row" data-date="@item.AppointmentDate.ToString("yyyy-MM-dd")">
+                                <td class="ps-4 fw-bold text-dark appt-patient">@item.PatientName</td>
                                 <td>@item.AppointmentDate.ToString("yyyy-MM-dd")</td>
                                 <td>@item.AppointmentTime.ToString(@"hh\:mm")</td>
                                 <td>
                                     @if (item.Status == "Pending")
                                     {
-                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2">Pending</span>
+                                        <span class="badge badge-pending rounded-pill px-2">Chờ xác nhận</span>
                                     }
                                     else if (item.Status == "Confirmed")
                                     {
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2">Confirmed</span>
+                                        <span class="badge badge-confirmed rounded-pill px-2">Đã xác nhận</span>
                                     }
                                     else if (item.Status == "Completed")
                                     {
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2">Completed</span>
+                                        <span class="badge badge-completed rounded-pill px-2">Hoàn thành</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2">Cancelled</span>
+                                        <span class="badge badge-cancelled rounded-pill px-2">Đã hủy</span>
                                     }
                                 </td>
                                 <td class="text-muted small">
@@ -123,12 +112,12 @@
                                         <form asp-action="Confirm" asp-route-id="@item.AppointmentId" method="post" class="d-inline-block me-1">
                                             @Html.AntiForgeryToken()
                                             <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
-                                                <i class="fa-solid fa-clipboard-check me-1"></i>Confirm
+                                                <i class="fa-solid fa-clipboard-check me-1"></i> Xác nhận
                                             </button>
                                         </form>
                                     }
                                     <a asp-action="Details" asp-route-id="@item.AppointmentId" class="btn btn-sm btn-outline-info rounded-pill px-3">
-                                        <i class="fa-solid fa-info-circle me-1"></i> Details
+                                        <i class="fa-solid fa-info-circle me-1"></i> Chi tiết
                                     </a>
                                 </td>
                             </tr>
@@ -143,14 +132,13 @@
 @section Scripts {
     <script>
         const patientInput = document.getElementById('patientSearchInput');
-        const statusSelect = document.getElementById('statusFilterSelect');
         const dateInput = document.getElementById('dateFilterInput');
         const btnAll = document.getElementById('btnFilterAll');
         const btnToday = document.getElementById('btnFilterToday');
         const btnTomorrow = document.getElementById('btnFilterTomorrow');
         const btnThisWeek = document.getElementById('btnFilterThisWeek');
 
-        let activeDateMode = 'all'; // 'all', 'today', 'tomorrow', 'thisweek', 'custom'
+        let activeDateMode = 'today';
 
         function getTodayDateString() {
             const now = new Date();
@@ -169,32 +157,27 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Initialize default filter to All
-        dateInput.value = '';
+        // Initialize default filter to Today
+        dateInput.value = getTodayDateString();
         updateQuickButtonStyles();
         applyFilters();
 
         function updateQuickButtonStyles() {
-            btnAll.classList.toggle('active', activeDateMode === 'all');
             btnAll.classList.toggle('btn-primary', activeDateMode === 'all');
             btnAll.classList.toggle('btn-outline-primary', activeDateMode !== 'all');
 
-            btnToday.classList.toggle('active', activeDateMode === 'today');
             btnToday.classList.toggle('btn-primary', activeDateMode === 'today');
             btnToday.classList.toggle('btn-outline-primary', activeDateMode !== 'today');
 
-            btnTomorrow.classList.toggle('active', activeDateMode === 'tomorrow');
             btnTomorrow.classList.toggle('btn-primary', activeDateMode === 'tomorrow');
             btnTomorrow.classList.toggle('btn-outline-primary', activeDateMode !== 'tomorrow');
 
-            btnThisWeek.classList.toggle('active', activeDateMode === 'thisweek');
             btnThisWeek.classList.toggle('btn-primary', activeDateMode === 'thisweek');
             btnThisWeek.classList.toggle('btn-outline-primary', activeDateMode !== 'thisweek');
         }
 
         function applyFilters() {
             const searchVal = patientInput.value.toLowerCase().trim();
-            const statusVal = statusSelect.value;
             const dateVal = dateInput.value;
 
             let weekStart = null;
@@ -215,9 +198,6 @@
                 const patientName = row.querySelector('.appt-patient').textContent.toLowerCase();
                 const matchesPatient = patientName.includes(searchVal);
 
-                const rowStatus = row.getAttribute('data-status');
-                const matchesStatus = !statusVal || rowStatus === statusVal;
-
                 const rowDateStr = row.getAttribute('data-date');
                 let matchesDate = false;
 
@@ -233,7 +213,7 @@
                     matchesDate = true;
                 }
 
-                if (matchesPatient && matchesStatus && matchesDate) {
+                if (matchesPatient && matchesDate) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -242,7 +222,6 @@
         }
 
         patientInput.addEventListener('keyup', applyFilters);
-        statusSelect.addEventListener('change', applyFilters);
         
         dateInput.addEventListener('change', function() {
             activeDateMode = 'custom';

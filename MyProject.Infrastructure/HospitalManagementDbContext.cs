@@ -31,9 +31,25 @@ public partial class HospitalManagementDbContext : DbContext
 
     public virtual DbSet<Prescription> Prescriptions { get; set; }
 
+    public virtual DbSet<LabTestService> LabTestServices { get; set; }
+
+    public virtual DbSet<AppointmentLabTest> AppointmentLabTests { get; set; }
+
+    public virtual DbSet<Payment> Payments { get; set; }
+
+    public virtual DbSet<Notification> Notifications { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=VIETANHFATTY\\SQLEXPRESS;uid=sa;password=1234567890;database=HospitalManagementDB;Encrypt=True;TrustServerCertificate=True;");
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseSqlServer("Server=VIETANHFATTY\\SQLEXPRESS;uid=sa;password=123456;database=HospitalManagementDB;Encrypt=True;TrustServerCertificate=True;",
+                sqlOptions => sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null));
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -96,6 +112,11 @@ public partial class HospitalManagementDbContext : DbContext
             entity.Property(e => e.BloodType).HasMaxLength(10).HasColumnName("BloodType");
             entity.Property(e => e.EmergencyContactName).HasMaxLength(100).HasColumnName("EmergencyContactName");
             entity.Property(e => e.EmergencyContactPhone).HasMaxLength(20).IsUnicode(false).HasColumnName("EmergencyContactPhone");
+
+            entity.HasOne(d => d.User)
+                .WithOne(p => p.Patient)
+                .HasForeignKey<Patient>(d => d.UserId)
+                .HasConstraintName("FK_Patients_Users");
         });
 
         modelBuilder.Entity<Staff>(entity =>
@@ -122,6 +143,9 @@ public partial class HospitalManagementDbContext : DbContext
             entity.Property(e => e.AppointmentTime).HasColumnName("AppointmentTime");
             entity.Property(e => e.Reason).HasMaxLength(500).HasColumnName("Reason");
             entity.Property(e => e.Status).HasMaxLength(20).IsUnicode(false).HasDefaultValue("Pending").HasColumnName("Status");
+            entity.Property(e => e.CheckInTime).HasColumnType("datetime").HasColumnName("CheckInTime");
+            entity.Property(e => e.QueuePriorityTime).HasColumnType("datetime").HasColumnName("QueuePriorityTime");
+            entity.Property(e => e.IsWalkIn).HasDefaultValue(false).HasColumnName("IsWalkIn");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())").HasColumnType("datetime").HasColumnName("CreatedAt");
 
             entity.HasOne(d => d.Doctor).WithMany(p => p.Appointments)
@@ -174,6 +198,91 @@ public partial class HospitalManagementDbContext : DbContext
                 .HasForeignKey(d => d.MedicalRecordId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Prescriptions_MedicalRecords");
+        });
+
+        modelBuilder.Entity<LabTestService>(entity =>
+        {
+            entity.ToTable("LabTestServices");
+
+            entity.Property(e => e.LabTestServiceId).HasColumnName("LabTestServiceId");
+            entity.Property(e => e.ServiceName).HasMaxLength(100).HasColumnName("ServiceName");
+            entity.Property(e => e.Description).HasMaxLength(500).HasColumnName("Description");
+            entity.Property(e => e.Price).HasColumnType("decimal(18, 2)").HasColumnName("Price");
+            entity.Property(e => e.Category).HasMaxLength(100).HasColumnName("Category");
+            entity.Property(e => e.IsActive).HasDefaultValue(true).HasColumnName("IsActive");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())").HasColumnType("datetime").HasColumnName("CreatedAt");
+        });
+
+        modelBuilder.Entity<AppointmentLabTest>(entity =>
+        {
+            entity.ToTable("AppointmentLabTests");
+
+            entity.Property(e => e.AppointmentLabTestId).HasColumnName("AppointmentLabTestId");
+            entity.Property(e => e.AppointmentId).HasColumnName("AppointmentId");
+            entity.Property(e => e.LabTestServiceId).HasColumnName("LabTestServiceId");
+            entity.Property(e => e.DoctorId).HasColumnName("DoctorId");
+            entity.Property(e => e.TestDate).HasColumnType("datetime").HasColumnName("TestDate");
+            entity.Property(e => e.Result).HasColumnName("Result");
+            entity.Property(e => e.ResultValues).HasColumnName("ResultValues");
+            entity.Property(e => e.Status).HasMaxLength(20).IsUnicode(false).HasDefaultValue("Pending").HasColumnName("Status");
+            entity.Property(e => e.Notes).HasMaxLength(500).HasColumnName("Notes");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())").HasColumnType("datetime").HasColumnName("CreatedAt");
+
+            entity.HasOne(d => d.Appointment).WithMany(p => p.AppointmentLabTests)
+                .HasForeignKey(d => d.AppointmentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AppointmentLabTests_Appointments");
+
+            entity.HasOne(d => d.LabTestService).WithMany(p => p.AppointmentLabTests)
+                .HasForeignKey(d => d.LabTestServiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AppointmentLabTests_LabTestServices");
+
+            entity.HasOne(d => d.Doctor).WithMany(p => p.AppointmentLabTests)
+                .HasForeignKey(d => d.DoctorId)
+                .HasConstraintName("FK_AppointmentLabTests_Doctors");
+        });
+
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.ToTable("Payments");
+
+            entity.Property(e => e.PaymentId).HasColumnName("PaymentId");
+            entity.Property(e => e.PatientId).HasColumnName("PatientId");
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)").HasColumnName("Amount");
+            entity.Property(e => e.Reason).HasMaxLength(500).HasColumnName("Reason");
+            entity.Property(e => e.Status).HasMaxLength(20).IsUnicode(false).HasDefaultValue("Pending").HasColumnName("Status");
+            entity.Property(e => e.RequestDate).HasDefaultValueSql("(getdate())").HasColumnType("datetime").HasColumnName("RequestDate");
+            entity.Property(e => e.PaidDate).HasColumnType("datetime").HasColumnName("PaidDate");
+
+            entity.HasOne(d => d.Patient).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.PatientId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Payments_Patients");
+
+            entity.HasOne(d => d.Appointment)
+                .WithMany()
+                .HasForeignKey(d => d.AppointmentId)
+                .HasConstraintName("FK_Payments_Appointments");
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.ToTable("Notifications");
+
+            entity.Property(e => e.NotificationId).HasColumnName("NotificationId");
+            entity.Property(e => e.UserId).HasColumnName("UserId");
+            entity.Property(e => e.Title).HasMaxLength(200).HasColumnName("Title");
+            entity.Property(e => e.Message).HasMaxLength(500).HasColumnName("Message");
+            entity.Property(e => e.Type).HasMaxLength(30).IsUnicode(false).HasColumnName("Type");
+            entity.Property(e => e.RelatedEntityId).HasColumnName("RelatedEntityId");
+            entity.Property(e => e.IsRead).HasDefaultValue(false).HasColumnName("IsRead");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())").HasColumnType("datetime").HasColumnName("CreatedAt");
+
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Notifications_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

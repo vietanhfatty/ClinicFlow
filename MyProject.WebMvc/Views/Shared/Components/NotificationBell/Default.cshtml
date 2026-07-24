@@ -1,0 +1,225 @@
+@model IEnumerable<MyProject.Application.DTOs.NotificationDto>
+
+@{
+    var unreadCount = ViewBag.UnreadCount as int? ?? 0;
+    var notifications = Model?.ToList() ?? new List<MyProject.Application.DTOs.NotificationDto>();
+
+    string TimeAgo(DateTime dt)
+    {
+        var span = DateTime.Now - dt;
+        if (span.TotalSeconds < 60) return "just now";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
+        if (span.TotalDays < 7) return $"{(int)span.TotalDays}d ago";
+        return dt.ToString("MMM dd");
+    }
+
+    string IconFor(string type) => type switch
+    {
+        "Appointment" => "fa-calendar-check",
+        "LabTest" => "fa-flask",
+        "MedicalRecord" => "fa-file-medical",
+        "Prescription" => "fa-prescription-bottle-medical",
+        "Payment" => "fa-credit-card",
+        _ => "fa-bell"
+    };
+
+    string IconColorFor(string type) => type switch
+    {
+        "Appointment" => "text-info",
+        "LabTest" => "text-warning",
+        "MedicalRecord" => "text-primary",
+        "Prescription" => "text-success",
+        "Payment" => "text-danger",
+        _ => "text-secondary"
+    };
+}
+
+<div class="dropdown notification-bell">
+    <button class="header-icon-btn position-relative" type="button" id="notificationBellButton"
+            data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+        <i class="fa-regular fa-bell"></i>
+        @if (unreadCount > 0)
+        {
+            <span class="notification-badge">@(unreadCount > 99 ? "99+" : unreadCount.ToString())</span>
+        }
+    </button>
+
+    <div class="dropdown-menu dropdown-menu-end notification-dropdown shadow-lg border-0 rounded-4 p-0"
+         aria-labelledby="notificationBellButton">
+        <div class="notification-header d-flex justify-content-between align-items-center px-3 py-3">
+            <div>
+                <h6 class="mb-0 fw-bold text-white">Notifications</h6>
+                <small class="text-white-50">
+                    @(unreadCount > 0 ? $"{unreadCount} unread" : "All caught up")
+                </small>
+            </div>
+            @if (unreadCount > 0)
+            {
+                <form asp-controller="Notifications" asp-action="MarkAllAsRead" method="post" class="m-0">
+                    <button type="submit" class="btn btn-sm btn-light rounded-pill px-3 py-1 fw-semibold notification-markall">
+                        <i class="fa-solid fa-check-double me-1"></i>Mark all
+                    </button>
+                </form>
+            }
+        </div>
+
+        <div class="notification-body">
+            @if (!notifications.Any())
+            {
+                <div class="notification-empty text-center py-5 px-3">
+                    <div class="notification-empty-icon mb-3">
+                        <i class="fa-regular fa-bell-slash"></i>
+                    </div>
+                    <p class="text-muted mb-0 small">No notifications yet</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var n in notifications)
+                {
+                    <div class="notification-item d-flex gap-3 px-3 py-3 @(n.IsRead ? "" : "unread")">
+                        <div class="notification-icon @IconColorFor(n.Type)">
+                            <i class="fa-solid @IconFor(n.Type)"></i>
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="notification-title fw-semibold">@n.Title</span>
+                                <small class="notification-time text-muted ms-2 flex-shrink-0">@TimeAgo(n.CreatedAt)</small>
+                            </div>
+                            <p class="notification-message text-muted small mb-0">@n.Message</p>
+                        </div>
+                        @if (!n.IsRead)
+                        {
+                            <span class="notification-dot"></span>
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="notification-footer text-center py-2 border-top">
+            <a asp-controller="Notifications" asp-action="Index" class="text-decoration-none small fw-semibold">
+                View all notifications
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .notification-badge {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        line-height: 18px;
+        color: #fff;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        border: 2px solid #fff;
+        border-radius: 999px;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+    }
+
+    .notification-dropdown {
+        width: 380px;
+        max-width: 90vw;
+        overflow: hidden;
+        margin-top: 0.75rem !important;
+        animation: notifFadeIn 0.18s ease-out;
+    }
+
+    @@keyframes notifFadeIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .notification-header {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    }
+
+    .notification-markall {
+        font-size: 0.75rem;
+        color: #4f46e5;
+    }
+
+    .notification-body {
+        max-height: 380px;
+        overflow-y: auto;
+    }
+
+    .notification-body::-webkit-scrollbar { width: 6px; }
+    .notification-body::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.15);
+        border-radius: 999px;
+    }
+
+    .notification-item {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        transition: background 0.15s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .notification-item:hover {
+        background: #f8f9ff;
+    }
+
+    .notification-item.unread {
+        background: #eef2ff;
+    }
+
+    .notification-item.unread:hover {
+        background: #e0e7ff;
+    }
+
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: rgba(0,0,0,0.04);
+        font-size: 1rem;
+    }
+
+    .notification-title {
+        font-size: 0.875rem;
+        color: #1f2937;
+    }
+
+    .notification-message {
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .notification-time {
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+
+    .notification-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4f46e5;
+        align-self: center;
+        flex-shrink: 0;
+    }
+
+    .notification-empty-icon {
+        font-size: 2.5rem;
+        color: #d1d5db;
+    }
+
+    .min-w-0 { min-width: 0; }
+</style>

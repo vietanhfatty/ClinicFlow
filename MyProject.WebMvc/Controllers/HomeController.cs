@@ -61,7 +61,7 @@ namespace MyProject.WebMvc.Controllers
             {
                 TotalPatientsCount = patients.Count(),
                 ActiveDoctorsCount = doctors.Count(d => users.Any(u => u.Username == d.Email && u.IsActive)),
-                WaitingQueueCount = appointments.Count(a => a.Status == "Waiting" && a.AppointmentDate == DateOnly.FromDateTime(today)),
+                WaitingQueueCount = appointments.Count(a => a.Status == "Confirmed" && a.AppointmentDate == DateOnly.FromDateTime(today)),
                 TodayAppointmentsCount = appointments.Count(a => a.AppointmentDate == DateOnly.FromDateTime(today)),
                 RecentCheckIns = appointments
                     .Where(a => a.AppointmentDate == DateOnly.FromDateTime(today))

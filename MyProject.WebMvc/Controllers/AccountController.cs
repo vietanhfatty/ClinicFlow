@@ -13,13 +13,13 @@ namespace MyProject.WebMvc.Controllers;
 
 public class AccountController : Controller
 {
-    private readonly AuthService _authService;
-    private readonly PatientService _patientService;
+    private readonly AuthApiService _authApiService;
+    private readonly PatientApiService _patientApiService;
 
-    public AccountController(AuthService authService, PatientService patientService)
+    public AccountController(AuthApiService authApiService, PatientApiService patientApiService)
     {
-        _authService = authService;
-        _patientService = patientService;
+        _authApiService = authApiService;
+        _patientApiService = patientApiService;
     }
 
     [HttpGet]
@@ -39,21 +39,34 @@ public class AccountController : Controller
     public async Task<IActionResult> Login(LoginRequest request, string? returnUrl = null)
     {
         ViewBag.ReturnUrl = returnUrl;
-        
-        var result = await _authService.LoginAsync(request.Username, request.Password);
+
+        // Login goes through the WebApi (JWT issuer). WebMvc never touches the DB directly.
+        var result = await _authApiService.LoginAsync(request);
         if (!result.Success)
         {
             ModelState.AddModelError("", result.Message);
             return View();
         }
 
+        // BFF pattern: the browser keeps its usual Cookie Authentication session for
+        // [Authorize]/redirect-to-login UX, but the JWT issued by WebApi is stashed inside
+        // that cookie as a claim so BearerTokenForwardingHandler can forward it as a
+        // Bearer token on every outgoing call to WebApi.
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, result.Username!),
             new Claim(ClaimTypes.NameIdentifier, result.UserId.ToString()!),
             new Claim(ClaimTypes.Role, result.RoleName!),
-            new Claim("FullName", result.FullName!)
+            new Claim("FullName", result.FullName!),
+            new Claim("AccessToken", result.AccessToken!)
         };
+
+        if (result.PatientId.HasValue)
+            claims.Add(new Claim("PatientId", result.PatientId.Value.ToString()));
+        if (result.DoctorId.HasValue)
+            claims.Add(new Claim("DoctorId", result.DoctorId.Value.ToString()));
+        if (result.StaffId.HasValue)
+            claims.Add(new Claim("StaffId", result.StaffId.Value.ToString()));
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
@@ -98,7 +111,7 @@ public class AccountController : Controller
 
         try
         {
-            await _patientService.CreateAsync(request);
+            await _patientApiService.CreateAsync(request);
             TempData["SuccessMessage"] = "Registration successful! Please log in.";
             return RedirectToAction(nameof(Login));
         }
@@ -110,6 +123,36 @@ public class AccountController : Controller
         catch (Exception ex)
         {
             ModelState.AddModelError("", "Registration failed: " + ex.Message);
+            return View(request);
+        }
+    }
+
+    [HttpGet]
+    [Authorize]
+    public IActionResult ChangePassword()
+    {
+        return View(new ChangePasswordRequest("", ""));
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(request);
+        }
+
+        try
+        {
+            await _authApiService.ChangePasswordAsync(request);
+            TempData["SuccessMessage"] = "Password changed successfully. Please log in again.";
+            return RedirectToAction(nameof(Logout));
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError("", ex.Message);
             return View(request);
         }
     }

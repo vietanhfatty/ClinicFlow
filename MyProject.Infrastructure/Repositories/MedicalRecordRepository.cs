@@ -23,6 +23,12 @@ public class MedicalRecordRepository : IMedicalRecordRepository
                 .ThenInclude(a => a.Patient)
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Doctor)
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.AppointmentLabTests)
+                .ThenInclude(lt => lt.LabTestService)
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.AppointmentLabTests)
+                .ThenInclude(lt => lt.Doctor)
             .Include(mr => mr.Prescriptions)
             .ToListAsync();
     }
@@ -34,6 +40,12 @@ public class MedicalRecordRepository : IMedicalRecordRepository
                 .ThenInclude(a => a.Patient)
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Doctor)
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.AppointmentLabTests)
+                .ThenInclude(lt => lt.LabTestService)
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.AppointmentLabTests)
+                .ThenInclude(lt => lt.Doctor)
             .Include(mr => mr.Prescriptions)
             .FirstOrDefaultAsync(mr => mr.MedicalRecordId == id);
     }
@@ -45,6 +57,12 @@ public class MedicalRecordRepository : IMedicalRecordRepository
                 .ThenInclude(a => a.Patient)
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Doctor)
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.AppointmentLabTests)
+                .ThenInclude(lt => lt.LabTestService)
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.AppointmentLabTests)
+                .ThenInclude(lt => lt.Doctor)
             .Include(mr => mr.Prescriptions)
             .FirstOrDefaultAsync(mr => mr.AppointmentId == appointmentId);
     }
@@ -56,6 +74,12 @@ public class MedicalRecordRepository : IMedicalRecordRepository
                 .ThenInclude(a => a.Patient)
             .Include(mr => mr.Appointment)
                 .ThenInclude(a => a.Doctor)
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.AppointmentLabTests)
+                .ThenInclude(lt => lt.LabTestService)
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.AppointmentLabTests)
+                .ThenInclude(lt => lt.Doctor)
             .Include(mr => mr.Prescriptions)
             .Where(mr => mr.Appointment.PatientId == patientId)
             .ToListAsync();

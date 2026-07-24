@@ -1,0 +1,95 @@
+@model IEnumerable<MyProject.Application.DTOs.MedicalRecordDto>
+
+@{
+    ViewData["Title"] = $"Medical Records — {ViewBag.PatientName}";
+}
+
+<div class="container-fluid mt-4">
+    <div class="mb-4">
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Patients
+        </a>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fa-solid fa-user-injured text-success me-2"></i>@ViewBag.PatientName
+            </h1>
+            <p class="text-muted small mb-0">@Model.Count() medical record(s)</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase font-monospace fs-7">
+                        <tr>
+                            <th class="ps-4">Date & Time</th>
+                            <th>Doctor</th>
+                            <th>Diagnosis</th>
+                            <th>Lab Tests</th>
+                            <th>Prescriptions</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var record in Model.OrderByDescending(r => r.AppointmentDate).ThenByDescending(r => r.AppointmentTime))
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">@record.AppointmentDate.ToString("yyyy-MM-dd")</div>
+                                    <div class="text-muted small">@record.AppointmentTime.ToString(@"hh\:mm")</div>
+                                </td>
+                                <td class="small text-muted">@record.DoctorName</td>
+                                <td>
+                                    @if (string.IsNullOrEmpty(record.Diagnosis))
+                                    {
+                                        <span class="text-muted small">—</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-dark" title="@record.Diagnosis">
+                                            @(record.Diagnosis.Length > 40 ? record.Diagnosis.Substring(0, 37) + "..." : record.Diagnosis)
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (record.LabTests != null && record.LabTests.Any())
+                                    {
+                                        <span class="badge bg-info-subtle text-info border border-info rounded-pill px-2">
+                                            <i class="fa-solid fa-flask-vial me-1"></i>@record.LabTests.Count
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (record.Prescriptions != null && record.Prescriptions.Any())
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-2">
+                                            <i class="fa-solid fa-pills me-1"></i>@record.Prescriptions.Count
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">—</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="Details" asp-route-id="@record.MedicalRecordId"
+                                       class="btn btn-sm btn-primary rounded-pill px-3">
+                                        <i class="fa-solid fa-folder-open me-1"></i> Open
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

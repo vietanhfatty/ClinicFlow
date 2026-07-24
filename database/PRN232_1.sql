@@ -1,4 +1,4 @@
-﻿CREATE DATABASE HospitalManagementDB_V2;
+CREATE DATABASE HospitalManagementDB_V2;
 GO
 
 USE HospitalManagementDB_V2;
@@ -77,6 +77,9 @@ CREATE TABLE Appointments
     AppointmentTime TIME NOT NULL,
     Reason NVARCHAR(500),
     Status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    CheckInTime DATETIME NULL,        -- Thời điểm bệnh nhân thực sự check-in
+    QueuePriorityTime DATETIME NULL,  -- Mốc dùng để sắp xếp hàng chờ (grace -> giờ đặt; walk-in/Late -> giờ đến)
+    IsWalkIn BIT NOT NULL DEFAULT 0,  -- Đánh dấu ca khách vãng lai đến trực tiếp
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
 
     CONSTRAINT FK_Appointments_Patients FOREIGN KEY(PatientId) REFERENCES Patients(PatientId),
@@ -110,3 +113,58 @@ CREATE TABLE Prescriptions
 
     CONSTRAINT FK_Prescriptions_MedicalRecords FOREIGN KEY(MedicalRecordId) REFERENCES MedicalRecords(MedicalRecordId)
 );
+
+-- 7. LAB TEST SERVICES (DỊCH VỤ XÉT NGHIỆM)
+CREATE TABLE LabTestServices
+(
+    LabTestServiceId INT IDENTITY(1,1) PRIMARY KEY,
+    ServiceName NVARCHAR(100) NOT NULL,
+    Description NVARCHAR(500),
+    Price DECIMAL(18,2) NOT NULL DEFAULT 0,
+    Category NVARCHAR(100),
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+-- 8. APPOINTMENT LAB TESTS (YÊU CẦU XÉT NGHIỆM THEO LỊCH KHÂM)
+CREATE TABLE AppointmentLabTests
+(
+    AppointmentLabTestId INT IDENTITY(1,1) PRIMARY KEY,
+    AppointmentId INT NOT NULL,
+    LabTestServiceId INT NOT NULL,
+    DoctorId INT NULL,
+    TestDate DATETIME NULL,
+    Result NVARCHAR(MAX),
+    Status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    Notes NVARCHAR(500),
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_AppointmentLabTests_Appointments FOREIGN KEY(AppointmentId) REFERENCES Appointments(AppointmentId),
+    CONSTRAINT FK_AppointmentLabTests_LabTestServices FOREIGN KEY(LabTestServiceId) REFERENCES LabTestServices(LabTestServiceId),
+    CONSTRAINT FK_AppointmentLabTests_Doctors FOREIGN KEY(DoctorId) REFERENCES Doctors(DoctorId)
+);
+
+-- SEED DATA CHO LAB TEST SERVICES
+INSERT INTO LabTestServices (ServiceName, Description, Price, Category, IsActive) VALUES
+(N'Xét nghiệm máu tổng quát (CBC)', N'Kiểm tra các thành phần hồng cầu, bạch cầu, tiểu cầu', 150000, N'Xét nghiệm máu', 1),
+(N'Xét nghiệm đường huyết (Glucose)', N'Kiểm tra chỉ số đường huyết lúc đói', 80000, N'Sinh hóa', 1),
+(N'Xét nghiệm chức năng gan (ALT, AST)', N'Đánh giá tổn thương và chức năng tế bào gan', 200000, N'Sinh hóa', 1),
+(N'Xét nghiệm chức năng thận (Urea, Creatinine)', N'Đánh giá khả năng lọc của thận', 180000, N'Sinh hóa', 1),
+(N'Chụp X-quang ngực thẳng', N'Chẩn đoán tổn thương phổi, tim và lồng ngực', 250000, N'Chẩn đoán hình ảnh', 1),
+(N'Siêu âm tổng quát bụng', N'Tầm soát các cơ quan trong ổ bụng', 300000, N'Chẩn đoán hình ảnh', 1),
+(N'Điện tâm đồ (ECG)', N'Đo hoạt động điện của tim', 120000, N'Thăm dò chức năng', 1);
+
+-- 9. NOTIFICATIONS (THÔNG BÁO TRONG ỨNG DỤNG)
+CREATE TABLE Notifications
+(
+    NotificationId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    Message NVARCHAR(500) NOT NULL,
+    Type VARCHAR(30) NOT NULL,       -- Appointment, LabTest, MedicalRecord, Payment
+    RelatedEntityId INT NULL,
+    IsRead BIT NOT NULL DEFAULT 0,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Notifications_Users FOREIGN KEY(UserId) REFERENCES Users(UserId)
+);

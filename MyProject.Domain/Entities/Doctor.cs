@@ -20,4 +20,6 @@ public partial class Doctor
     public string? Description { get; set; }
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+
+    public virtual ICollection<AppointmentLabTest> AppointmentLabTests { get; set; } = new List<AppointmentLabTest>();
 }

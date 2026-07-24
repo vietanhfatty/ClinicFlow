@@ -23,6 +23,18 @@ public class PrescriptionRepository : IPrescriptionRepository
             .ToListAsync();
     }
 
+    public async Task<Prescription?> GetByIdAsync(int id)
+    {
+        return await _context.Prescriptions
+            .Include(p => p.MedicalRecord)
+                .ThenInclude(mr => mr.Appointment)
+                    .ThenInclude(a => a.Patient)
+            .Include(p => p.MedicalRecord)
+                .ThenInclude(mr => mr.Appointment)
+                    .ThenInclude(a => a.Doctor)
+            .FirstOrDefaultAsync(p => p.PrescriptionId == id);
+    }
+
     public async Task AddAsync(Prescription prescription)
     {
         _context.Prescriptions.Add(prescription);

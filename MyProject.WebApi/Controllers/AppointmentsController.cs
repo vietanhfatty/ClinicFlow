@@ -40,7 +40,21 @@ public class AppointmentsController : ControllerBase
     {
         try
         {
-            await _service.CreateAsync(request);
+            var staffId = request.StaffId;
+            if (!staffId.HasValue)
+            {
+                var staffIdClaim = User.FindFirst("StaffId")?.Value;
+                if (!string.IsNullOrEmpty(staffIdClaim) && int.TryParse(staffIdClaim, out int sId))
+                {
+                    staffId = sId;
+                }
+            }
+
+            var requestWithStaff = request.StaffId != staffId
+                ? request with { StaffId = staffId }
+                : request;
+
+            await _service.CreateAsync(requestWithStaff);
             return Created("", null);
         }
         catch (KeyNotFoundException ex)
@@ -99,6 +113,44 @@ public class AppointmentsController : ControllerBase
         {
             return StatusCode(500, new { Message = ex.InnerException?.Message ?? ex.Message });
         }
+    }
+
+    [HttpPost("walkin")]
+    [Authorize(Roles = "Staff,Admin")]
+    public async Task<IActionResult> CreateWalkIn([FromBody] CreateWalkInRequest request)
+    {
+        try
+        {
+            int? staffId = null;
+            var staffIdClaim = User.FindFirst("StaffId")?.Value;
+            if (!string.IsNullOrEmpty(staffIdClaim) && int.TryParse(staffIdClaim, out int sId))
+            {
+                staffId = sId;
+            }
+
+            await _service.CreateWalkInAsync(request, staffId);
+            return Created("", new { Message = "Walk-in patient checked in and queued successfully." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = ex.InnerException?.Message ?? ex.Message });
+        }
+    }
+
+    [HttpPost("scan-late")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ScanLate()
+    {
+        var count = await _service.MarkOverdueAppointmentsAsLateAsync();
+        return Ok(new { Message = $"{count} appointment(s) marked as Late.", Count = count });
     }
 
     [HttpPost("{id}/confirm")]

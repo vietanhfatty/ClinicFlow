@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Application.DTOs;
 using MyProject.Application.Services;
@@ -14,10 +11,12 @@ namespace MyProject.WebApi.Controllers;
 public class AccountController : ControllerBase
 {
     private readonly AuthService _authService;
+    private readonly JwtTokenService _jwtTokenService;
 
-    public AccountController(AuthService authService)
+    public AccountController(AuthService authService, JwtTokenService jwtTokenService)
     {
         _authService = authService;
+        _jwtTokenService = jwtTokenService;
     }
 
     [HttpPost("login")]
@@ -29,26 +28,56 @@ public class AccountController : ControllerBase
             return BadRequest(result);
         }
 
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, result.Username!),
-            new Claim(ClaimTypes.NameIdentifier, result.UserId.ToString()!),
-            new Claim(ClaimTypes.Role, result.RoleName!),
-            new Claim("FullName", result.FullName!)
-        };
+        var (token, expiresAt) = _jwtTokenService.GenerateToken(
+            result.UserId!.Value,
+            result.Username!,
+            result.RoleName!,
+            result.FullName!,
+            result.PatientId,
+            result.DoctorId,
+            result.StaffId);
 
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var principal = new ClaimsPrincipal(identity);
+        var response = result with { AccessToken = token, ExpiresAt = expiresAt };
 
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-        return Ok(result);
+        return Ok(response);
     }
 
+    /// <summary>
+    /// JWT is stateless; logout is handled client-side by discarding the token.
+    /// This endpoint exists for API symmetry / future token revocation support.
+    /// </summary>
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout()
+    [Authorize]
+    public IActionResult Logout()
     {
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return Ok(new { Message = "Logout successful" });
+    }
+
+    /// <summary>
+    /// Allows an authenticated user to change their own password.
+    /// </summary>
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized(new { Message = "Invalid user identity." });
+        }
+
+        try
+        {
+            await _authService.ChangePasswordAsync(userId, request);
+            return Ok(new { Message = "Password changed successfully." });
+        }
+        catch (System.Collections.Generic.KeyNotFoundException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+        catch (System.ArgumentException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 }

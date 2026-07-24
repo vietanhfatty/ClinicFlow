@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -73,6 +73,11 @@
                             </a>
                         </li>
                         <li class="nav-menu-item">
+                            <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "LabTests" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" asp-controller="LabTests" asp-action="Index">
+                                <i class="fa-solid fa-flask-vial"></i> Lab Tests
+                            </a>
+                        </li>
+                        <li class="nav-menu-item">
                             <a class="nav-menu-link @(currentPage == "/Statistics/DoctorWorkload" ? "active" : "")" asp-page="/Statistics/DoctorWorkload">
                                 <i class="fa-solid fa-briefcase-medical"></i> Doctor Workload
                             </a>
@@ -88,6 +93,12 @@
                             <li class="nav-menu-item">
                                 <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Staff" ? "active" : "")" asp-controller="Staff" asp-action="Index">
                                     <i class="fa-solid fa-users-cog"></i> Staff Members
+                                </a>
+                            </li>
+
+                            <li class="nav-menu-item">
+                                <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "LabTests" && ViewContext.RouteData.Values["Action"]?.ToString() == "Services" ? "active" : "")" asp-controller="LabTests" asp-action="Services">
+                                    <i class="fa-solid fa-flask"></i> Lab Test Prices
                                 </a>
                             </li>
 
@@ -129,11 +140,6 @@
                             </a>
                         </li>
                         <li class="nav-menu-item">
-                            <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PatientPortal" && ViewContext.RouteData.Values["Action"]?.ToString() == "BookAppointment" ? "active" : "")" asp-controller="PatientPortal" asp-action="BookAppointment">
-                                <i class="fa-solid fa-calendar-plus"></i> Book Appointment
-                            </a>
-                        </li>
-                        <li class="nav-menu-item">
                             <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PatientPortal" && ViewContext.RouteData.Values["Action"]?.ToString() == "MyHistory" ? "active" : "")" asp-controller="PatientPortal" asp-action="MyHistory">
                                 <i class="fa-solid fa-history"></i> My History
                             </a>
@@ -148,10 +154,18 @@
                                 <i class="fa-solid fa-user-circle"></i> My Profile
                             </a>
                         </li>
+                        <li class="nav-menu-item">
+                            <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PatientPortal" && (ViewContext.RouteData.Values["Action"]?.ToString() == "PaymentHistory" || ViewContext.RouteData.Values["Action"]?.ToString() == "RequestPayment") ? "active" : "")" asp-controller="PatientPortal" asp-action="PaymentHistory">
+                                <i class="fa-solid fa-credit-card"></i> Payments
+                            </a>
+                        </li>
                     }
                 </ul>
 
                 <div class="sidebar-footer">
+                    <a class="nav-menu-link" asp-controller="Account" asp-action="ChangePassword">
+                        <i class="fa-solid fa-key"></i> Change Password
+                    </a>
                     <a class="nav-menu-link" href="#" onclick="alert('Support Hotline: +1 (800) 555-0199')">
                         <i class="fa-solid fa-headset"></i> Support
                     </a>
@@ -185,10 +199,7 @@
                     </div>
 
                     <div class="header-right">
-                        <button class="header-icon-btn">
-                            <i class="fa-regular fa-bell"></i>
-                            <span class="badge-dot"></span>
-                        </button>
+                        @await Component.InvokeAsync("NotificationBell")
                         <button class="header-icon-btn">
                             <i class="fa-regular fa-circle-question"></i>
                         </button>

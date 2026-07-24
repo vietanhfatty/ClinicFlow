@@ -1,74 +1,77 @@
 @model MyProject.Application.DTOs.AppointmentDto
 
 @{
-    ViewData["Title"] = "Appointment Booking Details";
+    ViewData["Title"] = "Chi tiết lịch hẹn";
 }
+
+<partial name="~/Views/Shared/_AppointmentStyles.cshtml" />
 
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="m-0 fw-bold text-primary"><i class="fa-solid fa-circle-info me-2"></i>Appointment Details</h5>
+                <div class="card-header appt-card-header d-flex justify-content-between align-items-center">
+                    <h5 class="m-0 fw-bold" style="color: var(--appt-accent);">
+                        <i class="fa-solid fa-circle-info me-2"></i>Chi tiết lịch hẹn
+                    </h5>
                     <a asp-action="Edit" asp-route-id="@Model.AppointmentId" class="btn btn-outline-warning btn-sm rounded-pill px-3">
-                        <i class="fa-solid fa-edit me-1"></i> Edit details
+                        <i class="fa-solid fa-edit me-1"></i> Chỉnh sửa
                     </a>
                 </div>
                 <div class="card-body p-4">
                     <div class="row mb-3">
-                        <div class="col-sm-4 text-muted small fw-bold">APPOINTMENT ID</div>
-                        <div class="col-sm-8 text-dark fw-bold">#@Model.AppointmentId</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4 text-muted small fw-bold">PATIENT NAME</div>
+                        <div class="col-sm-4 text-muted small fw-bold">TÊN BỆNH NHÂN</div>
                         <div class="col-sm-8 text-dark fw-bold fs-5">@Model.PatientName</div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-sm-4 text-muted small fw-bold">ASSIGNED DOCTOR</div>
+                        <div class="col-sm-4 text-muted small fw-bold">BÁC SĨ PHỤ TRÁCH</div>
                         <div class="col-sm-8 text-dark">@Model.DoctorName</div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-sm-4 text-muted small fw-bold">DATE</div>
+                        <div class="col-sm-4 text-muted small fw-bold">NGÀY HẸN</div>
                         <div class="col-sm-8 text-dark">@Model.AppointmentDate.ToString("yyyy-MM-dd")</div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-sm-4 text-muted small fw-bold">TIME</div>
+                        <div class="col-sm-4 text-muted small fw-bold">GIỜ HẸN</div>
                         <div class="col-sm-8 text-dark">@Model.AppointmentTime.ToString(@"hh\:mm")</div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-sm-4 text-muted small fw-bold">STATUS</div>
+                        <div class="col-sm-4 text-muted small fw-bold">TRẠNG THÁI</div>
                         <div class="col-sm-8">
                             @if (Model.Status == "Pending")
                             {
-                                <span class="badge bg-warning-subtle text-warning border rounded-pill px-3 py-1">Pending</span>
+                                <span class="badge badge-pending rounded-pill px-3 py-1">Chờ xác nhận</span>
                             }
                             else if (Model.Status == "Confirmed")
                             {
-                                <span class="badge bg-info-subtle text-info border rounded-pill px-3 py-1">Confirmed</span>
+                                <span class="badge badge-confirmed rounded-pill px-3 py-1">Đã xác nhận</span>
                             }
                             else if (Model.Status == "Completed")
                             {
-                                <span class="badge bg-success-subtle text-success border rounded-pill px-3 py-1">Completed</span>
+                                <span class="badge badge-completed rounded-pill px-3 py-1">Hoàn thành</span>
                             }
                             else
                             {
-                                <span class="badge bg-danger-subtle text-danger border rounded-pill px-3 py-1">Cancelled</span>
+                                <span class="badge badge-cancelled rounded-pill px-3 py-1">Đã hủy</span>
                             }
                         </div>
                     </div>
                     <div class="row mb-4">
-                        <div class="col-sm-4 text-muted small fw-bold">REASON FOR BOOKING</div>
-                        <div class="col-sm-8 text-dark text-wrap">@(string.IsNullOrEmpty(Model.Reason) ? "No details provided" : Model.Reason)</div>
+                        <div class="col-sm-4 text-muted small fw-bold">LÝ DO KHÁM</div>
+                        <div class="col-sm-8 text-dark text-wrap">@(string.IsNullOrEmpty(Model.Reason) ? "Không có thông tin" : Model.Reason)</div>
                     </div>
 
                     <div class="d-flex justify-content-start mt-4 gap-2">
                         <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
-                            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+                            <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
                         </a>
                         @if (User.IsInRole("Doctor"))
                         {
-                            <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#followupModal">
-                                <i class="fa-solid fa-calendar-plus me-1"></i> Schedule Follow-up
+                            <button type="button" class="btn btn-outline-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#followupModal">
+                                <i class="fa-solid fa-calendar-plus me-1"></i> Đặt tái khám
+                            </button>
+                            <button type="button" class="btn btn-info text-white rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#orderLabTestModal">
+                                <i class="fa-solid fa-flask me-1"></i> Chỉ định xét nghiệm
                             </button>
                         }
                     </div>
@@ -79,8 +82,10 @@
             {
                 var history = ViewBag.MedicalHistory as List<MyProject.Application.DTOs.MedicalRecordDto>;
                 <div class="card shadow-sm border-0 rounded-4 mt-4 bg-white">
-                    <div class="card-header bg-white py-3 border-0">
-                        <h5 class="m-0 fw-bold text-success"><i class="fa-solid fa-notes-medical me-2"></i>Lịch sử bệnh án / Patient Medical History</h5>
+                    <div class="card-header appt-card-header border-0">
+                        <h5 class="m-0 fw-bold" style="color: var(--appt-accent);">
+                            <i class="fa-solid fa-notes-medical me-2"></i>Lịch sử bệnh án
+                        </h5>
                     </div>
                     <div class="card-body p-4 pt-1">
                         @if (history == null || !history.Any())
@@ -96,7 +101,6 @@
                                 @foreach (var record in history)
                                 {
                                     <div class="position-relative mb-4">
-                                        <!-- Timeline Bullet -->
                                         <span class="position-absolute rounded-circle bg-success" 
                                               style="width: 12px; height: 12px; left: -19px; top: 6px; border: 2px solid #fff; box-shadow: 0 0 0 2px #e9ecef;"></span>
                                         
@@ -104,44 +108,121 @@
                                             <span class="text-muted small fw-bold">
                                                 <i class="fa-solid fa-calendar-alt me-1"></i> @record.CreatedAt.ToString("yyyy-MM-dd HH:mm")
                                             </span>
-                                            <span class="badge bg-secondary-subtle text-secondary">ID #@record.MedicalRecordId</span>
                                         </div>
                                         <div class="bg-light p-3 rounded-3 border-start border-success border-3">
                                             <div class="row">
                                                 <div class="col-sm-6 mb-2 mb-sm-0">
-                                                    <div class="text-muted small fw-semibold">CHẨN ĐOÁN (DIAGNOSIS)</div>
+                                                    <div class="text-muted small fw-semibold">CHẨN ĐOÁN</div>
                                                     <div class="fw-bold text-dark">@record.Diagnosis</div>
                                                 </div>
                                                 <div class="col-sm-6">
-                                                    <div class="text-muted small fw-semibold">BÁC SĨ (DOCTOR)</div>
+                                                    <div class="text-muted small fw-semibold">BÁC SĨ</div>
                                                     <div class="text-dark">@record.DoctorName</div>
                                                 </div>
                                             </div>
                                             <div class="mt-2 pt-2 border-top border-2 border-white-50">
-                                                <div class="text-muted small fw-semibold">TRIỆU CHỨNG (SYMPTOMS)</div>
-                                                <div class="text-secondary small text-wrap">@(string.IsNullOrEmpty(record.Symptoms) ? "None" : record.Symptoms)</div>
+                                                <div class="text-muted small fw-semibold">TRIỆU CHỨNG</div>
+                                                <div class="text-secondary small text-wrap">@(string.IsNullOrEmpty(record.Symptoms) ? "Không có" : record.Symptoms)</div>
                                             </div>
                                             <div class="mt-2">
-                                                <div class="text-muted small fw-semibold">ĐIỀU TRỊ (TREATMENT PLAN)</div>
-                                                <div class="text-secondary small text-wrap">@(string.IsNullOrEmpty(record.Treatment) ? "None" : record.Treatment)</div>
+                                                <div class="text-muted small fw-semibold">ĐIỀU TRỊ</div>
+                                                <div class="text-secondary small text-wrap">@(string.IsNullOrEmpty(record.Treatment) ? "Không có" : record.Treatment)</div>
                                             </div>
                                             @if (record.Prescriptions != null && record.Prescriptions.Any())
                                             {
                                                 <div class="mt-2">
-                                                    <div class="text-muted small fw-semibold">THUỐC (PRESCRIPTION)</div>
+                                                    <div class="text-muted small fw-semibold">ĐƠN THUỐC</div>
                                                     <div class="text-dark small">
-                                                        @string.Join(", ", record.Prescriptions.Select(p => $"{p.MedicineName} (Qty: {p.Quantity})"))
+                                                        @string.Join(", ", record.Prescriptions.Select(p => $"{p.MedicineName} (SL: {p.Quantity})"))
                                                     </div>
                                                 </div>
                                             }
                                             <div class="text-end mt-2">
-                                                <a asp-controller="MedicalRecords" asp-action="Details" asp-route-id="@record.MedicalRecordId" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fs-7">
-                                                    <i class="fa-solid fa-folder-open me-1"></i> Xem chi tiết / Open File
+                                                <a asp-controller="MedicalRecords" asp-action="Details" asp-route-id="@record.MedicalRecordId" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1">
+                                                    <i class="fa-solid fa-folder-open me-1"></i> Xem chi tiết
                                                 </a>
                                             </div>
                                         </div>
                                     </div>
                                 }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @{
+                var labTests = ViewBag.LabTests as List<MyProject.Application.DTOs.AppointmentLabTestDto>;
+            }
+            @if (labTests != null)
+            {
+                <div class="card shadow-sm border-0 rounded-4 mt-4 bg-white">
+                    <div class="card-header appt-card-header border-0">
+                        <h5 class="m-0 fw-bold" style="color: var(--appt-accent);">
+                            <i class="fa-solid fa-flask me-2"></i>Xét nghiệm đã chỉ định
+                        </h5>
+                    </div>
+                    <div class="card-body p-4 pt-1">
+                        @if (!labTests.Any())
+                        {
+                            <div class="text-center py-4 text-muted bg-light rounded-3">
+                                <i class="fa-solid fa-vial-circle-check fa-2x mb-2 text-secondary"></i>
+                                <p class="mb-0 small fw-bold">Chưa có xét nghiệm nào được chỉ định.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table align-middle table-appointment">
+                                    <thead>
+                                        <tr>
+                                            <th>Dịch vụ</th>
+                                            <th>Ngày làm</th>
+                                            <th>Trạng thái</th>
+                                            <th>Kết quả</th>
+                                            <th>Ghi chú</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var lt in labTests)
+                                        {
+                                            <tr>
+                                                <td class="fw-bold text-dark">@lt.ServiceName</td>
+                                                <td class="small">@(lt.TestDate?.ToString("yyyy-MM-dd HH:mm") ?? "—")</td>
+                                                <td>
+                                                    @if (lt.Status == "Completed")
+                                                    {
+                                                        <span class="badge badge-completed rounded-pill px-3 py-1">Hoàn thành</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge badge-pending rounded-pill px-3 py-1">Chờ xử lý</span>
+                                                    }
+                                                </td>
+                                                <td class="small text-wrap" style="max-width: 260px;">
+                                                    @if (lt.Indicators.Any())
+                                                    {
+                                                        <ul class="list-unstyled mb-0">
+                                                            @foreach (var ind in lt.Indicators)
+                                                            {
+                                                                <li><span class="text-muted">@ind.Label:</span> <strong>@(string.IsNullOrEmpty(ind.Value) ? "—" : ind.Value)</strong> @ind.Unit</li>
+                                                            }
+                                                        </ul>
+                                                        @if (!string.IsNullOrEmpty(lt.Result))
+                                                        {
+                                                            <div class="text-muted small mt-1">@lt.Result</div>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        @(string.IsNullOrEmpty(lt.Result) ? "—" : lt.Result)
+                                                    }
+                                                </td>
+                                                <td class="small text-muted text-wrap" style="max-width: 180px;">@(string.IsNullOrEmpty(lt.Notes) ? "—" : lt.Notes)</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
                             </div>
                         }
                     </div>
@@ -157,32 +238,76 @@
     <div class="modal fade" id="followupModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title"><i class="fa-solid fa-clock me-2"></i>Schedule Follow-up Appointment</h5>
+                <div class="modal-header bg-success text-white rounded-top-4">
+                    <h5 class="modal-title"><i class="fa-solid fa-clock me-2"></i>Đặt lịch tái khám</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form asp-action="ScheduleFollowup" method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="patientId" value="@Model.PatientId" />
                     <div class="modal-body p-4">
-                        <div class="alert alert-info rounded-3 small">
-                            <i class="fa-solid fa-circle-info me-2"></i>You are scheduling a follow-up appointment for patient: <strong>@Model.PatientName</strong>
+                        <div class="alert alert-success rounded-3 small">
+                            <i class="fa-solid fa-circle-info me-2"></i>Bạn đang đặt lịch tái khám cho bệnh nhân: <strong>@Model.PatientName</strong>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted">Select Appointment Date & Time</label>
+                            <label class="form-label appt-label">Chọn ngày & giờ tái khám</label>
                             <input type="datetime-local" name="appointmentDate" class="form-control rounded-3" required 
                                    value="@DateTime.Today.AddDays(14).ToString("yyyy-MM-ddT09:00")" />
-                            <small class="text-muted">Tip: Follow-up is usually recommended in 14 days.</small>
+                            <small class="text-muted">Gợi ý: Tái khám thường được khuyến cáo sau 14 ngày.</small>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted">Follow-up Reason / Notes</label>
-                            <textarea name="reason" class="form-control rounded-3" rows="3" placeholder="Enter specific instructions or reason for follow-up..."></textarea>
+                            <label class="form-label appt-label">Lý do tái khám / Ghi chú</label>
+                            <textarea name="reason" class="form-control rounded-3" rows="3" placeholder="Nhập hướng dẫn cụ thể hoặc lý do tái khám..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer border-0 pt-0">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary rounded-pill px-4">
-                            <i class="fa-solid fa-calendar-check me-1"></i> Confirm Follow-up
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-success rounded-pill px-4">
+                            <i class="fa-solid fa-calendar-check me-1"></i> Xác nhận tái khám
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Lab Test Modal -->
+    <div class="modal fade" id="orderLabTestModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-info text-white rounded-top-4">
+                    <h5 class="modal-title"><i class="fa-solid fa-flask me-2"></i>Chỉ định xét nghiệm</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="OrderLabTest" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="appointmentId" value="@Model.AppointmentId" />
+                    <div class="modal-body p-4">
+                        <div class="alert alert-info rounded-3 small">
+                            <i class="fa-solid fa-circle-info me-2"></i>Chỉ định xét nghiệm cho bệnh nhân: <strong>@Model.PatientName</strong>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label appt-label">Chọn dịch vụ xét nghiệm</label>
+                            <select name="labTestServiceId" class="form-select rounded-3" required>
+                                <option value="" disabled selected>-- Chọn dịch vụ --</option>
+                                @if (ViewBag.ActiveLabServices is List<MyProject.Application.DTOs.LabTestServiceDto> services)
+                                {
+                                    @foreach (var svc in services)
+                                    {
+                                        <option value="@svc.LabTestServiceId">@svc.ServiceName (@svc.Price.ToString("N0") VND)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label appt-label">Ghi chú yêu cầu</label>
+                            <textarea name="notes" class="form-control rounded-3" rows="3" placeholder="Ghi chú thêm cho kỹ thuật viên (nếu có)..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-info text-white rounded-pill px-4">
+                            <i class="fa-solid fa-flask me-1"></i> Xác nhận chỉ định
                         </button>
                     </div>
                 </form>

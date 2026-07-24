@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using MyProject.Application.Configuration;
 using MyProject.Application.DTOs;
 using MyProject.Domain.Entities;
 using MyProject.Domain.IRepositories;
@@ -14,17 +16,36 @@ public class AppointmentService
     private readonly IPatientRepository _patientRepo;
     private readonly IDoctorRepository _doctorRepo;
     private readonly IUserRepository _userRepo;
+    private readonly NotificationService _notificationService;
+    private readonly QueueSettings _queueSettings;
 
     public AppointmentService(
         IAppointmentRepository repo,
         IPatientRepository patientRepo,
         IDoctorRepository doctorRepo,
-        IUserRepository userRepo)
+        IUserRepository userRepo,
+        NotificationService notificationService,
+        IOptions<QueueSettings> queueSettings)
     {
         _repo = repo;
         _patientRepo = patientRepo;
         _doctorRepo = doctorRepo;
         _userRepo = userRepo;
+        _notificationService = notificationService;
+        _queueSettings = queueSettings.Value;
+    }
+
+    /// <summary>
+    /// Resolves the UserId that corresponds to a patient's login account.
+    /// The legacy schema has no PatientId-&gt;UserId FK, so accounts are linked
+    /// by convention: User.Username == Patient.Phone.
+    /// </summary>
+    private async Task<int?> ResolvePatientUserIdAsync(int patientId)
+    {
+        var patient = await _patientRepo.GetByIdAsync(patientId);
+        if (patient == null || string.IsNullOrWhiteSpace(patient.Phone)) return null;
+        var user = await _userRepo.GetByUsernameAsync(patient.Phone);
+        return user?.UserId;
     }
 
     public async Task<IEnumerable<AppointmentDto>> GetAllAsync()
@@ -58,6 +79,7 @@ public class AppointmentService
         {
             PatientId = req.PatientId,
             DoctorId = req.DoctorId,
+            StaffId = req.StaffId,
             AppointmentDate = req.AppointmentDate,
             AppointmentTime = req.AppointmentTime,
             Status = status,
@@ -116,17 +138,99 @@ public class AppointmentService
         var appointment = await _repo.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Appointment with ID {id} not found");
 
-        if (appointment.Status != "Pending")
+        var previousStatus = appointment.Status;
+        if (previousStatus != "Pending" && previousStatus != "Late")
         {
-            throw new InvalidOperationException($"Cannot check-in. Current appointment status is '{appointment.Status}' but must be 'Pending'.");
+            throw new InvalidOperationException($"Cannot check-in. Current appointment status is '{appointment.Status}' but must be 'Pending' or 'Late'.");
         }
 
-        await ValidateAppointmentLimitAsync(appointment.DoctorId, appointment.PatientId, appointment.AppointmentDate, appointment.AppointmentTime, id);
+        var now = DateTime.Now;
+        var scheduledStart = appointment.AppointmentDate.ToDateTime(TimeOnly.FromTimeSpan(appointment.AppointmentTime));
+        var graceDeadline = scheduledStart.AddMinutes(_queueSettings.GracePeriodMinutes);
+        var withinGrace = previousStatus == "Pending" && now <= graceDeadline;
 
+        // Only enforce the slot limit while the patient is still within their booked grace window.
+        // Late arrivals lose their reserved slot and rejoin the queue by real arrival time (Cách A).
+        if (withinGrace)
+        {
+            await ValidateAppointmentLimitAsync(appointment.DoctorId, appointment.PatientId, appointment.AppointmentDate, appointment.AppointmentTime, id);
+        }
+
+        appointment.CheckInTime = now;
+        appointment.QueuePriorityTime = withinGrace ? scheduledStart : now;
         appointment.Status = "Confirmed";
         await _repo.UpdateAsync(appointment);
 
-        await CancelOtherPendingAppointmentsIfLimitReachedAsync(appointment.DoctorId, appointment.AppointmentDate, appointment.AppointmentTime, id);
+        if (withinGrace)
+        {
+            await CancelOtherPendingAppointmentsIfLimitReachedAsync(appointment.DoctorId, appointment.AppointmentDate, appointment.AppointmentTime, id);
+        }
+    }
+
+    public async Task CreateWalkInAsync(CreateWalkInRequest req, int? staffId = null)
+    {
+        var patient = await _patientRepo.GetByIdAsync(req.PatientId)
+            ?? throw new KeyNotFoundException($"Patient with ID {req.PatientId} not found");
+
+        var doctor = await _doctorRepo.GetByIdAsync(req.DoctorId)
+            ?? throw new KeyNotFoundException($"Doctor with ID {req.DoctorId} not found");
+
+        var now = DateTime.Now;
+
+        // Walk-in ca không chiếm slot cố định nên bỏ qua ValidateAppointmentLimitAsync.
+        var appointment = new Appointment
+        {
+            PatientId = req.PatientId,
+            DoctorId = req.DoctorId,
+            StaffId = staffId,
+            AppointmentDate = DateOnly.FromDateTime(now),
+            AppointmentTime = now.TimeOfDay,
+            Reason = req.Reason?.Trim(),
+            Status = "Confirmed",
+            IsWalkIn = true,
+            CheckInTime = now,
+            QueuePriorityTime = now,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _repo.AddAsync(appointment);
+    }
+
+    /// <summary>
+    /// Quét các lịch Pending hôm nay chưa check-in đã quá grace period, chuyển sang 'Late'
+    /// và bắn thông báo cho bệnh nhân. Gọi định kỳ từ background service.
+    /// </summary>
+    public async Task<int> MarkOverdueAppointmentsAsLateAsync()
+    {
+        var now = DateTime.Now;
+        var today = DateOnly.FromDateTime(now);
+        var list = await _repo.GetAllAsync();
+
+        var overdue = list.Where(a =>
+            a.Status == "Pending" &&
+            a.AppointmentDate == today &&
+            a.CheckInTime == null &&
+            now > a.AppointmentDate.ToDateTime(TimeOnly.FromTimeSpan(a.AppointmentTime)).AddMinutes(_queueSettings.GracePeriodMinutes))
+            .ToList();
+
+        foreach (var appt in overdue)
+        {
+            appt.Status = "Late";
+            await _repo.UpdateAsync(appt);
+
+            var patientUserId = await ResolvePatientUserIdAsync(appt.PatientId);
+            if (patientUserId.HasValue)
+            {
+                await _notificationService.NotifyAsync(
+                    patientUserId.Value,
+                    "Quá giờ hẹn",
+                    "Bạn đã quá giờ hẹn, vị trí hàng chờ của bạn đã được xếp lại theo thời gian bạn check-in",
+                    "Appointment",
+                    appt.AppointmentId);
+            }
+        }
+
+        return overdue.Count;
     }
 
     public async Task ConfirmAsync(int id)
@@ -145,6 +249,17 @@ public class AppointmentService
         await _repo.UpdateAsync(appointment);
 
         await CancelOtherPendingAppointmentsIfLimitReachedAsync(appointment.DoctorId, appointment.AppointmentDate, appointment.AppointmentTime, id);
+
+        var patientUserId = await ResolvePatientUserIdAsync(appointment.PatientId);
+        if (patientUserId.HasValue)
+        {
+            await _notificationService.NotifyAsync(
+                patientUserId.Value,
+                "Lịch hẹn đã được xác nhận",
+                $"Lịch hẹn ngày {appointment.AppointmentDate:dd/MM/yyyy} lúc {appointment.AppointmentTime:hh\\:mm} đã được xác nhận.",
+                "Appointment",
+                appointment.AppointmentId);
+        }
     }
 
     public async Task StartExaminationAsync(int id)
@@ -166,13 +281,24 @@ public class AppointmentService
         var appointment = await _repo.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Appointment with ID {id} not found");
 
-        if (appointment.Status != "InProgress")
+        if (appointment.Status != "Confirmed" && appointment.Status != "InProgress")
         {
-            throw new InvalidOperationException($"Cannot complete appointment. Current status is '{appointment.Status}' but must be 'InProgress'.");
+            throw new InvalidOperationException($"Cannot complete appointment. Current status is '{appointment.Status}' but must be 'Confirmed' or 'InProgress'.");
         }
 
         appointment.Status = "Completed";
         await _repo.UpdateAsync(appointment);
+
+        var patientUserId = await ResolvePatientUserIdAsync(appointment.PatientId);
+        if (patientUserId.HasValue)
+        {
+            await _notificationService.NotifyAsync(
+                patientUserId.Value,
+                "Khám bệnh hoàn tất",
+                $"Lịch hẹn ngày {appointment.AppointmentDate:dd/MM/yyyy} đã hoàn tất. Vui lòng xem hồ sơ bệnh án và đơn thuốc.",
+                "MedicalRecord",
+                appointment.AppointmentId);
+        }
     }
 
     public async Task<IEnumerable<AppointmentDto>> GetByPatientUserIdAsync(int userId)
@@ -245,6 +371,17 @@ public class AppointmentService
         {
             pending.Status = "Cancelled";
             await _repo.UpdateAsync(pending);
+
+            var patientUserId = await ResolvePatientUserIdAsync(pending.PatientId);
+            if (patientUserId.HasValue)
+            {
+                await _notificationService.NotifyAsync(
+                    patientUserId.Value,
+                    "Lịch hẹn đã bị hủy",
+                    $"Lịch hẹn ngày {pending.AppointmentDate:dd/MM/yyyy} lúc {pending.AppointmentTime:hh\\:mm} đã bị hủy do trùng khung giờ với lịch hẹn khác đã được xác nhận.",
+                    "Appointment",
+                    pending.AppointmentId);
+            }
         }
     }
 
@@ -262,7 +399,10 @@ public class AppointmentService
             a.AppointmentTime,
             a.Status,
             a.Reason,
-            a.CreatedAt
+            a.CreatedAt,
+            a.CheckInTime,
+            a.QueuePriorityTime,
+            a.IsWalkIn
         );
     }
 }

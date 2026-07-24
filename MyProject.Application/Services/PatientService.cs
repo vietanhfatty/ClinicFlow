@@ -42,12 +42,6 @@ public class PatientService
     {
         ValidatePatientData(req.Phone, req.DateOfBirth, req.EmergencyContactPhone);
 
-        var phone = req.Phone?.Trim();
-        if (string.IsNullOrWhiteSpace(phone))
-        {
-            throw new ArgumentException("Phone number is required.");
-        }
-
         var username = req.Username?.Trim();
         if (string.IsNullOrWhiteSpace(username))
         {
@@ -59,13 +53,6 @@ public class PatientService
         if (existingUser != null)
         {
             throw new ArgumentException($"Username '{username}' is already registered.");
-        }
-
-        // Phone unique validation
-        var patients = await _repo.GetAllAsync();
-        if (patients.Any(p => p.Phone == phone))
-        {
-            throw new ArgumentException($"Phone number '{phone}' is already in use by another patient.");
         }
 
         // Get Patient role
@@ -82,8 +69,23 @@ public class PatientService
             CreatedAt = DateTime.UtcNow
         };
 
+        await _userRepo.AddAsync(user);
+
+        var phone = req.Phone?.Trim();
+
+        // Phone unique validation (only if provided)
+        if (!string.IsNullOrWhiteSpace(phone))
+        {
+            var patients = await _repo.GetAllAsync();
+            if (patients.Any(p => p.Phone == phone))
+            {
+                throw new ArgumentException($"Phone number '{phone}' is already in use by another patient.");
+            }
+        }
+
         var patient = new Patient
         {
+            UserId = user.UserId,
             FullName = req.FullName.Trim(),
             Phone = phone,
             DateOfBirth = req.DateOfBirth,
@@ -94,7 +96,6 @@ public class PatientService
             EmergencyContactPhone = req.EmergencyContactPhone?.Trim()
         };
 
-        await _userRepo.AddAsync(user);
         await _repo.AddAsync(patient);
     }
 
@@ -276,11 +277,7 @@ public class PatientService
         // Wait, is it possible that we can save the custom username in the `Patient` table under some field, or is it possible that we can query the database to see the actual columns?
         // Let's write a small script to query the database tables using EF or SQL to see if there is a `UserId` column in `Patients` or a `PatientId` column in `Users` that was not scaffolded?
         // Let's run a dotnet build first to see if everything builds. Then we can inspect.
-        var user = users.FirstOrDefault(u => 
-            u.Username == p.Phone || 
-            (u.Role?.RoleName == "Patient" && string.Equals(u.Username, p.Phone, StringComparison.OrdinalIgnoreCase)) ||
-            (u.RoleId == 3 && u.Username == p.Phone)
-        );
+        var user = users.FirstOrDefault(u => u.UserId == p.UserId);
         return new PatientDto(
             p.PatientId,
             user?.UserId ?? 0,

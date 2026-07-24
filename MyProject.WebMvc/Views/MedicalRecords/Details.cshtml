@@ -13,29 +13,28 @@
                 <i class="fa-solid fa-arrow-left me-1"></i> Back to My Records
             </a>
         }
-        else if (User.IsInRole("Doctor"))
-        {
-            <a asp-controller="Appointments" asp-action="Queue" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                <i class="fa-solid fa-arrow-left me-1"></i> Back to Queue
-            </a>
-        }
         else
         {
             <a asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                <i class="fa-solid fa-arrow-left me-1"></i> Back to Directory
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Records
             </a>
         }
     </div>
 
-    <!-- Header Block -->
+    <!-- Header -->
     <div class="card shadow-sm border-0 rounded-4 bg-white p-4 mb-4">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <div class="d-flex align-items-center mb-2">
-                    <span class="badge bg-primary rounded-pill me-3 font-monospace fs-6">RECORD #@Model.MedicalRecordId</span>
-                    <span class="text-muted small"><i class="fa-solid fa-clock me-1"></i> Created on @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</span>
+                <div class="d-flex flex-wrap gap-3 mb-2">
+                    <span class="badge bg-primary-subtle text-primary border border-primary rounded-pill px-3">
+                        <i class="fa-solid fa-calendar me-1"></i> @Model.AppointmentDate.ToString("yyyy-MM-dd") at @Model.AppointmentTime.ToString(@"hh\:mm")
+                    </span>
+                    <span class="badge @(Model.AppointmentStatus == "Completed" ? "bg-success-subtle text-success border border-success" : "bg-warning-subtle text-warning border border-warning") rounded-pill px-3">
+                        <i class="fa-solid fa-circle-info me-1"></i> @Model.AppointmentStatus
+                    </span>
                 </div>
-                <h2 class="fw-bold text-dark mb-0">Hồ Sơ Bệnh Án / Medical File</h2>
+                <h2 class="fw-bold text-dark mb-0">Hồ Sơ Bệnh Án</h2>
+                <p class="text-muted small mb-0">Created on @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 <button class="btn btn-outline-primary rounded-pill px-4" onclick="window.print()">
@@ -46,44 +45,141 @@
     </div>
 
     <div class="row">
-        <!-- Main details card -->
+        <!-- Main content -->
         <div class="col-lg-8">
+
+            <!-- Appointment Info -->
             <div class="card shadow-sm border-0 rounded-4 bg-white p-4 mb-4">
-                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fa-solid fa-stethoscope text-primary me-2"></i>Clinical Assessment</h5>
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="fa-solid fa-calendar-check text-primary me-2"></i>Appointment Information
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="bg-light rounded-3 p-3 text-center">
+                            <div class="text-muted small text-uppercase fw-bold mb-1">Date</div>
+                            <div class="fw-bold text-dark">@Model.AppointmentDate.ToString("yyyy-MM-dd")</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-light rounded-3 p-3 text-center">
+                            <div class="text-muted small text-uppercase fw-bold mb-1">Time</div>
+                            <div class="fw-bold text-dark">@Model.AppointmentTime.ToString(@"hh\:mm")</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-light rounded-3 p-3 text-center">
+                            <div class="text-muted small text-uppercase fw-bold mb-1">Status</div>
+                            <div class="fw-bold @(Model.AppointmentStatus == "Completed" ? "text-success" : "text-warning")">@Model.AppointmentStatus</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinical Assessment -->
+            <div class="card shadow-sm border-0 rounded-4 bg-white p-4 mb-4">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="fa-solid fa-stethoscope text-primary me-2"></i>Clinical Assessment
+                </h5>
 
                 <div class="mb-4">
-                    <h6 class="fw-bold text-muted small text-uppercase">Symptoms & Complaints (Triệu chứng)</h6>
-                    <p class="text-dark bg-light p-3 rounded-3 border-start border-primary border-3">
+                    <h6 class="fw-bold text-muted small text-uppercase">Symptoms (Triệu chứng)</h6>
+                    <p class="text-dark bg-light p-3 rounded-3 border-start border-primary border-3 mb-0">
                         @(string.IsNullOrEmpty(Model.Symptoms) ? "No symptoms recorded." : Model.Symptoms)
                     </p>
                 </div>
 
                 <div class="mb-4">
-                    <h6 class="fw-bold text-muted small text-uppercase">Diagnosis (Chẩn đoán bệnh)</h6>
-                    <p class="text-dark bg-light p-3 rounded-3 border-start border-danger border-3 fw-bold">
+                    <h6 class="fw-bold text-muted small text-uppercase">Diagnosis (Chẩn đoán)</h6>
+                    <p class="text-dark bg-light p-3 rounded-3 border-start border-danger border-3 fw-bold mb-0">
                         @(string.IsNullOrEmpty(Model.Diagnosis) ? "No diagnosis recorded." : Model.Diagnosis)
                     </p>
                 </div>
 
                 <div class="mb-4">
-                    <h6 class="fw-bold text-muted small text-uppercase">Treatment Plan (Phương án điều trị)</h6>
-                    <p class="text-dark bg-light p-3 rounded-3 border-start border-success border-3">
+                    <h6 class="fw-bold text-muted small text-uppercase">Treatment (Phương án điều trị)</h6>
+                    <p class="text-dark bg-light p-3 rounded-3 border-start border-success border-3 mb-0">
                         @(string.IsNullOrEmpty(Model.Treatment) ? "No treatment plan recorded." : Model.Treatment)
                     </p>
                 </div>
 
-                <div class="mb-0">
-                    <h6 class="fw-bold text-muted small text-uppercase">Clinical Notes (Ghi chú lâm sàng)</h6>
-                    <p class="text-dark bg-light p-3 rounded-3">
-                        @(string.IsNullOrEmpty(Model.Notes) ? "No notes available." : Model.Notes)
-                    </p>
-                </div>
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="mb-0">
+                        <h6 class="fw-bold text-muted small text-uppercase">Notes (Ghi chú)</h6>
+                        <p class="text-dark bg-light p-3 rounded-3 mb-0">@Model.Notes</p>
+                    </div>
+                }
             </div>
 
-            <!-- Prescription card -->
+            <!-- Lab Tests -->
             <div class="card shadow-sm border-0 rounded-4 bg-white p-4 mb-4">
-                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fa-solid fa-file-prescription text-danger me-2"></i>Prescription (Đơn thuốc)</h5>
-                
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="fa-solid fa-flask-vial text-info me-2"></i>Lab Tests (Xét nghiệm)
+                </h5>
+
+                @if (Model.LabTests == null || !Model.LabTests.Any())
+                {
+                    <div class="text-center py-4 text-muted bg-light rounded-3">
+                        <i class="fa-solid fa-flask fa-2x mb-2 text-secondary"></i>
+                        <p class="mb-0 small fw-bold">No lab tests ordered for this appointment.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Service</th>
+                                    <th class="text-end">Price</th>
+                                    <th>Test Date</th>
+                                    <th>Status</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var lt in Model.LabTests)
+                                {
+                                    <tr>
+                                        <td class="fw-bold text-dark">@lt.ServiceName</td>
+                                        <td class="text-end text-success fw-bold">@lt.Price.ToString("C")</td>
+                                        <td class="small">@(lt.TestDate?.ToString("yyyy-MM-dd") ?? "N/A")</td>
+                                        <td>
+                                            @if (lt.Status == "Completed")
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success rounded-pill px-2">Completed</span>
+                                            }
+                                            else if (lt.Status == "Pending")
+                                            {
+                                                <span class="badge bg-warning-subtle text-warning border border-warning rounded-pill px-2">Pending</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill px-2">@lt.Status</span>
+                                            }
+                                        </td>
+                                        <td class="small text-muted">@(string.IsNullOrEmpty(lt.Result) ? "—" : lt.Result)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold border-top">
+                                    <td>Total</td>
+                                    <td class="text-end text-success">@Model.LabTests.Sum(l => l.Price).ToString("C")</td>
+                                    <td colspan="3"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            <!-- Prescriptions -->
+            <div class="card shadow-sm border-0 rounded-4 bg-white p-4 mb-4">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="fa-solid fa-file-prescription text-danger me-2"></i>Prescriptions (Đơn thuốc)
+                </h5>
+
                 @if (Model.Prescriptions == null || !Model.Prescriptions.Any())
                 {
                     <div class="text-center py-4 text-muted bg-light rounded-3">
@@ -97,9 +193,9 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Medicine Name</th>
+                                    <th>Medicine</th>
                                     <th>Dosage</th>
-                                    <th>Quantity</th>
+                                    <th class="text-center">Quantity</th>
                                     <th>Instructions</th>
                                 </tr>
                             </thead>
@@ -108,8 +204,8 @@
                                 {
                                     <tr>
                                         <td class="fw-bold text-dark">@prep.MedicineName</td>
-                                        <td>@prep.Dosage</td>
-                                        <td><span class="badge bg-secondary-subtle text-secondary rounded-pill px-2">@prep.Quantity</span></td>
+                                        <td><span class="badge bg-primary-subtle text-primary rounded-pill px-2">@prep.Dosage</span></td>
+                                        <td class="text-center"><span class="badge bg-secondary-subtle text-secondary rounded-pill px-2">@prep.Quantity</span></td>
                                         <td class="small text-muted">@prep.Instruction</td>
                                     </tr>
                                 }
@@ -120,38 +216,40 @@
             </div>
         </div>
 
-        <!-- Meta Sidebar info card -->
+        <!-- Sidebar -->
         <div class="col-lg-4">
             <div class="card shadow-sm border-0 rounded-4 bg-white p-4 mb-4">
-                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fa-solid fa-id-card text-success me-2"></i>Parties Involved</h5>
-                
-                <!-- Patient info -->
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="fa-solid fa-id-card text-success me-2"></i>Parties Involved
+                </h5>
+
+                <!-- Patient -->
                 <div class="d-flex align-items-center mb-4">
                     <div class="bg-success-subtle text-success rounded-circle p-3 me-3">
                         <i class="fa-solid fa-user-injured fa-lg"></i>
                     </div>
                     <div>
-                        <h6 class="fw-bold text-muted small mb-0 text-uppercase">Patient</h6>
-                        <span class="text-dark fw-bold">@Model.PatientName</span>
+                        <div class="text-muted small text-uppercase fw-bold mb-0">Patient</div>
+                        <div class="fw-bold text-dark">@Model.PatientName</div>
                     </div>
                 </div>
 
-                <!-- Doctor info -->
-                <div class="d-flex align-items-center mb-2">
+                <!-- Doctor -->
+                <div class="d-flex align-items-center">
                     <div class="bg-primary-subtle text-primary rounded-circle p-3 me-3">
                         <i class="fa-solid fa-user-md fa-lg"></i>
                     </div>
                     <div>
-                        <h6 class="fw-bold text-muted small mb-0 text-uppercase">Attending Physician</h6>
-                        <span class="text-dark fw-bold">@Model.DoctorName</span>
+                        <div class="text-muted small text-uppercase fw-bold mb-0">Attending Physician</div>
+                        <div class="fw-bold text-dark">@Model.DoctorName</div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="card shadow-sm border-0 rounded-4 bg-primary text-white p-4">
-                <h5 class="fw-bold mb-3"><i class="fa-solid fa-shield-halved me-2"></i>Medical Confidentiality</h5>
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-shield-halved me-2"></i>Confidentiality</h5>
                 <p class="small mb-0 text-white-50">
-                    This file is encrypted and protected under healthcare confidentiality regulations. Access is tracked and authorized to medical personnel and the patient only.
+                    This file is protected under healthcare confidentiality regulations. Access is tracked and authorized to medical personnel and the patient only.
                 </p>
             </div>
         </div>

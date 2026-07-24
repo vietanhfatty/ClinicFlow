@@ -1,0 +1,221 @@
+@model MyProject.Application.DTOs.CreateWalkInRequest
+
+@{
+    ViewData["Title"] = "Đăng ký khám trực tiếp";
+}
+
+<partial name="~/Views/Shared/_AppointmentStyles.cshtml" />
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h3 class="fw-bold m-0 text-dark">
+                        <i class="fa-solid fa-person-walking text-success me-2"></i>Đăng ký khám trực tiếp
+                    </h3>
+                    <p class="text-muted m-0 small">Đăng ký bệnh nhân đến trực tiếp và đưa vào hàng chờ ngay.</p>
+                </div>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+                </a>
+            </div>
+
+            <form asp-action="WalkIn" method="post" id="walkInForm">
+                @Html.AntiForgeryToken()
+
+                <!-- STEP 1: PATIENT -->
+                <div class="card wizard-step-card">
+                    <div class="card-header appt-card-header py-3 d-flex align-items-center">
+                        <span class="step-number">1</span>
+                        <h5 class="fw-bold m-0" style="color: var(--appt-accent);">Thông tin bệnh nhân</h5>
+                    </div>
+                    <div class="card-body px-4 pb-4 pt-2">
+                        <div class="mb-3">
+                            <label class="form-label appt-label">Tìm kiếm bệnh nhân (Tên hoặc SĐT)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                                </span>
+                                <input type="text" id="patientSearchInput" class="form-control bg-light border-start-0" 
+                                       placeholder="Nhập số điện thoại hoặc tên bệnh nhân..." autocomplete="off" />
+                            </div>
+                            <div id="searchResults" class="list-group shadow-sm mt-2 d-none" 
+                                 style="max-height: 250px; overflow-y: auto; z-index: 1000; position: relative;"></div>
+                        </div>
+
+                        <div id="selectedPatientContainer" class="d-none mb-3">
+                            <div class="patient-selected-badge d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fa-solid fa-circle-check me-2"></i>
+                                    <span class="fw-bold" id="selectedPatientName">Chưa chọn bệnh nhân</span>
+                                    <span class="ms-2 text-muted small" id="selectedPatientPhone"></span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle" id="clearPatientBtn">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" asp-for="PatientId" id="hiddenPatientId" required />
+                        <span asp-validation-for="PatientId" class="text-danger small d-block mb-3"></span>
+                    </div>
+                </div>
+
+                <!-- STEP 2: DOCTOR -->
+                <div class="card wizard-step-card">
+                    <div class="card-header appt-card-header py-3 d-flex align-items-center">
+                        <span class="step-number">2</span>
+                        <h5 class="fw-bold m-0" style="color: var(--appt-accent);">Khoa & Bác sĩ</h5>
+                    </div>
+                    <div class="card-body px-4 pb-4 pt-2">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label appt-label">Chuyên khoa</label>
+                                <select id="specializationSelect" class="form-select rounded-3">
+                                    <option value="All">-- Tất cả khoa --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DoctorId" class="form-label appt-label">Chọn bác sĩ</label>
+                                <select asp-for="DoctorId" id="doctorSelect" class="form-select rounded-3" required>
+                                    <option value="">-- Chọn bác sĩ --</option>
+                                    @if (ViewBag.Doctors != null)
+                                    {
+                                        @foreach (var doc in ViewBag.Doctors)
+                                        {
+                                            <option value="@doc.DoctorId" data-spec="@doc.Specialization">@doc.FullName (@doc.Specialization)</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="DoctorId" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: REASON -->
+                <div class="card wizard-step-card">
+                    <div class="card-header appt-card-header py-3 d-flex align-items-center">
+                        <span class="step-number">3</span>
+                        <h5 class="fw-bold m-0" style="color: var(--appt-accent);">Lý do khám</h5>
+                    </div>
+                    <div class="card-body px-4 pb-4 pt-2">
+                        <div class="mb-4">
+                            <label asp-for="Reason" class="form-label appt-label">Triệu chứng / Lý do khám</label>
+                            <textarea asp-for="Reason" class="form-control rounded-3" rows="3" 
+                                      placeholder="Mô tả triệu chứng hoặc lý do đến khám..."></textarea>
+                            <span asp-validation-for="Reason" class="text-danger small"></span>
+                        </div>
+
+                        <div class="alert alert-success py-2 px-3 small border-0 rounded-3 d-flex align-items-center">
+                            <i class="fa-solid fa-circle-info me-2"></i> Bệnh nhân sẽ được đăng ký ngay lập tức và xếp vào hàng chờ theo thời điểm hiện tại.
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill px-5 fw-bold shadow-sm" id="checkInBtn">
+                                <i class="fa-solid fa-clipboard-check me-2"></i> Đăng ký & Xếp hàng chờ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const patients = [
+            @if (ViewBag.Patients != null)
+            {
+                @foreach (var pat in ViewBag.Patients)
+                {
+                    <text>{ id: @pat.PatientId, name: "@Html.Raw(pat.FullName)", phone: "@Html.Raw(pat.Phone ?? "")" },</text>
+                }
+            }
+        ];
+
+        $(document).ready(function () {
+            // Populate specializations from doctor options
+            const specs = new Set();
+            $('#doctorSelect option').each(function () {
+                const spec = $(this).data('spec');
+                if (spec) specs.add(spec);
+            });
+            specs.forEach(s => $('#specializationSelect').append(`<option value="${s}">${s}</option>`));
+
+            // Patient search
+            $('#patientSearchInput').on('input', function () {
+                const query = $(this).val().toLowerCase().trim();
+                const $results = $('#searchResults');
+                if (query.length < 1) { $results.addClass('d-none').html(''); return; }
+
+                const matches = patients.filter(p =>
+                    p.name.toLowerCase().includes(query) || p.phone.includes(query));
+
+                if (matches.length === 0) {
+                    $results.removeClass('d-none').html('<div class="list-group-item text-muted text-center py-3">Không tìm thấy bệnh nhân phù hợp.</div>');
+                    return;
+                }
+
+                let html = '';
+                matches.forEach(p => {
+                    html += `
+                        <div class="list-group-item search-result-item" data-id="${p.id}" data-name="${p.name}" data-phone="${p.phone}">
+                            <div class="fw-bold">${p.name}</div>
+                            <div class="text-muted small"><i class="fa-solid fa-phone me-1"></i> ${p.phone || 'N/A'}</div>
+                        </div>`;
+                });
+                $results.removeClass('d-none').html(html);
+            });
+
+            $(document).on('click', '.search-result-item', function () {
+                selectPatient($(this).data('id'), $(this).data('name'), $(this).data('phone'));
+            });
+
+            function selectPatient(id, name, phone) {
+                $('#hiddenPatientId').val(id);
+                $('#selectedPatientName').text(name);
+                $('#selectedPatientPhone').text(phone ? `(SĐT: ${phone})` : '');
+                $('#selectedPatientContainer').removeClass('d-none');
+                $('#searchResults').addClass('d-none').html('');
+                $('#patientSearchInput').val('').prop('disabled', true);
+            }
+
+            $('#clearPatientBtn').on('click', function () {
+                $('#hiddenPatientId').val('');
+                $('#patientSearchInput').prop('disabled', false).val('').focus();
+                $('#selectedPatientContainer').addClass('d-none');
+            });
+
+            // Filter doctors by specialization
+            $('#specializationSelect').on('change', function () {
+                const spec = $(this).val();
+                $('#doctorSelect').val('');
+                if (spec === 'All') {
+                    $('#doctorSelect option').show();
+                } else {
+                    $('#doctorSelect option').each(function () {
+                        if ($(this).val() === "" || $(this).data('spec') === spec) $(this).show();
+                        else $(this).hide();
+                    });
+                }
+            });
+
+            // Pre-select patient if provided
+            const preselectedId = $('#hiddenPatientId').val();
+            if (preselectedId && preselectedId !== '0') {
+                const p = patients.find(x => x.id == preselectedId);
+                if (p) selectPatient(p.id, p.name, p.phone);
+            }
+
+            $('#walkInForm').on('submit', function (e) {
+                if (!$('#hiddenPatientId').val() || $('#hiddenPatientId').val() === '0') {
+                    e.preventDefault();
+                    alert('Vui lòng chọn bệnh nhân trước.');
+                }
+            });
+        });
+    </script>
+}

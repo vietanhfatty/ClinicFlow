@@ -1,0 +1,101 @@
+@model List<MyProject.Application.DTOs.LabTestServiceDto>
+
+@{
+    ViewData["Title"] = "Dịch vụ xét nghiệm / Lab Test Services";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-dark mb-0"><i class="fa-solid fa-flask-vial me-2 text-info"></i>Bảng giá dịch vụ xét nghiệm</h3>
+            <p class="text-muted small mb-0">Admin chỉ có thể điều chỉnh giá dịch vụ. Danh mục dịch vụ được quản lý qua dữ liệu hệ thống.</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-4">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5 text-muted bg-light rounded-3">
+                    <i class="fa-solid fa-flask fa-3x mb-3 text-secondary"></i>
+                    <p class="mb-0 fw-bold">Chưa có dịch vụ xét nghiệm nào trong hệ thống.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Tên dịch vụ</th>
+                                <th>Danh mục</th>
+                                <th>Mô tả</th>
+                                <th>Trạng thái</th>
+                                <th>Giá (VND)</th>
+                                <th class="text-end">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var svc in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-dark">@svc.ServiceName</td>
+                                    <td class="small">@(string.IsNullOrEmpty(svc.Category) ? "—" : svc.Category)</td>
+                                    <td class="small text-muted text-wrap" style="max-width: 260px;">@(string.IsNullOrEmpty(svc.Description) ? "—" : svc.Description)</td>
+                                    <td>
+                                        @if (svc.IsActive)
+                                        {
+                                            <span class="badge bg-success-subtle text-success border rounded-pill px-3 py-1">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-3 py-1">Inactive</span>
+                                        }
+                                    </td>
+                                    <td class="fw-bold">@svc.Price.ToString("N0")</td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                                data-bs-toggle="modal" data-bs-target="#priceModal-@svc.LabTestServiceId">
+                                            <i class="fa-solid fa-tag me-1"></i> Sửa giá
+                                        </button>
+
+                                        <div class="modal fade" id="priceModal-@svc.LabTestServiceId" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content border-0 shadow-lg rounded-4">
+                                                    <div class="modal-header bg-primary text-white rounded-top-4">
+                                                        <h5 class="modal-title"><i class="fa-solid fa-tag me-2"></i>Cập nhật giá dịch vụ</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <form asp-action="UpdatePrice" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@svc.LabTestServiceId" />
+                                                        <div class="modal-body p-4">
+                                                            <div class="alert alert-info rounded-3 small">
+                                                                <i class="fa-solid fa-circle-info me-2"></i>Dịch vụ: <strong>@svc.ServiceName</strong>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold small text-muted">Giá mới (VND)</label>
+                                                                <input type="number" name="price" class="form-control rounded-3" required
+                                                                       min="0" step="1000" value="@svc.Price" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer border-0 pt-0">
+                                                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                                                            <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                                                <i class="fa-solid fa-check me-1"></i> Lưu giá
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -20,8 +20,6 @@ public record HospitalStatisticsDto(
     List<TopDoctorDto> TopDoctorsByAppointments
 );
 
-public record StatusCountDto(string Status, int Count, double Percentage);
-
 public record SpecializationCountDto(string Specialization, int Count);
 
 public record MonthlyCountDto(string MonthLabel, int Count);

@@ -10,11 +10,6 @@
             <h1 class="h3 mb-0 text-gray-800"><i class="fa-solid fa-history text-primary me-2"></i>My Appointment History</h1>
             <p class="text-muted small mb-0">Overview of all past and upcoming consultation requests.</p>
         </div>
-        <div>
-            <a asp-action="BookAppointment" class="btn btn-success rounded-pill px-4">
-                <i class="fa-solid fa-plus me-1"></i> Book Appointment
-            </a>
-        </div>
     </div>
 
     <!-- History list -->
@@ -27,8 +22,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light text-uppercase font-monospace fs-7">
                         <tr>
-                            <th class="ps-4">Booking ID</th>
-                            <th>Doctor</th>
+                            <th class="ps-4">Doctor</th>
                             <th>Date</th>
                             <th>Time</th>
                             <th>Status</th>
@@ -39,7 +33,7 @@
                         @if (!Model.Any())
                         {
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
+                                <td colspan="5" class="text-center py-5 text-muted">
                                     <i class="fa-solid fa-calendar-times fa-3x mb-3 text-secondary"></i>
                                     <p class="mb-0 fw-bold">No booking history available.</p>
                                 </td>
@@ -48,8 +42,7 @@
                         @foreach (var app in Model)
                         {
                             <tr>
-                                <td class="ps-4 fw-bold text-secondary">#@app.AppointmentId</td>
-                                <td class="fw-bold text-dark">@app.DoctorName</td>
+                                <td class="ps-4 fw-bold text-dark">@app.DoctorName</td>
                                 <td>@app.AppointmentDate.ToString("yyyy-MM-dd")</td>
                                 <td>@app.AppointmentTime.ToString(@"hh\:mm")</td>
                                 <td>

@@ -28,10 +28,49 @@ public class MedicalRecordsController : Controller
     }
 
     [Authorize(Roles = "Admin,Doctor")]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search, string? status)
     {
         var list = await _medicalRecordService.GetAllAsync();
-        return View(list);
+        var allRecords = list.ToList();
+
+        // Filter by patient name (search)
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            allRecords = allRecords
+                .Where(r => r.PatientName.Contains(search, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        // Filter by appointment status
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            allRecords = allRecords
+                .Where(r => r.AppointmentStatus.Equals(status, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        ViewBag.SelectedPatientId = null;
+        return View(allRecords);
+    }
+
+    [Authorize(Roles = "Admin,Doctor")]
+    public async Task<IActionResult> PatientRecords(string patientName)
+    {
+        if (string.IsNullOrWhiteSpace(patientName))
+            return RedirectToAction(nameof(Index));
+
+        var allRecords = await _medicalRecordService.GetAllAsync();
+        var records = allRecords
+            .Where(r => r.PatientName == Uri.UnescapeDataString(patientName))
+            .OrderByDescending(r => r.AppointmentDate)
+            .ThenByDescending(r => r.AppointmentTime)
+            .ToList();
+
+        if (!records.Any())
+            return RedirectToAction(nameof(Index));
+
+        ViewBag.PatientName = records.First().PatientName;
+        return View(records);
     }
 
     public async Task<IActionResult> Details(int id)
@@ -96,8 +135,8 @@ public class MedicalRecordsController : Controller
                 }
             }
 
-            TempData["SuccessMessage"] = "Medical record created successfully.";
-            return RedirectToAction("Details", new { id = record.MedicalRecordId });
+            TempData["SuccessMessage"] = "Tạo bệnh án thành công!";
+            return RedirectToAction("Queue", "Appointments");
         }
         catch (Exception ex)
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -54,12 +55,19 @@ public class AuthService
 
         var fullName = user.Username;
         var roleName = user.Role?.RoleName ?? "User";
+        int? patientId = null;
+        int? doctorId = null;
+        int? staffId = null;
 
         if (roleName.Equals("Patient", StringComparison.OrdinalIgnoreCase))
         {
             var patients = await _patientRepo.GetAllAsync();
-            var patient = patients.FirstOrDefault(p => p.Phone == user.Username);
-            if (patient != null) fullName = patient.FullName;
+            var patient = patients.FirstOrDefault(p => p.UserId == user.UserId);
+            if (patient != null)
+            {
+                fullName = patient.FullName;
+                patientId = patient.PatientId;
+            }
         }
         else if (roleName.Equals("Doctor", StringComparison.OrdinalIgnoreCase))
         {
@@ -73,18 +81,39 @@ public class AuthService
                  !string.IsNullOrEmpty(d.Email) && 
                  d.Email.Contains('@') && 
                  string.Equals(user.Username.Substring(3), d.Email.Split('@')[0].Split('.').LastOrDefault(), StringComparison.OrdinalIgnoreCase)));
-            if (doctor != null) fullName = doctor.FullName;
+            if (doctor != null)
+            {
+                fullName = doctor.FullName;
+                doctorId = doctor.DoctorId;
+            }
         }
-        else if (roleName.Equals("Staff", StringComparison.OrdinalIgnoreCase) || roleName.Equals("Receptionist", StringComparison.OrdinalIgnoreCase))
+        else if (!roleName.Equals("Patient", StringComparison.OrdinalIgnoreCase) && !roleName.Equals("Doctor", StringComparison.OrdinalIgnoreCase))
         {
             var staffList = await _staffRepo.GetAllAsync();
+            var uname = user.Username.Trim();
+
             var staff = staffList.FirstOrDefault(s => 
-                string.Equals(s.Email, user.Username, StringComparison.OrdinalIgnoreCase) || 
-                string.Equals(s.Phone, user.Username, StringComparison.OrdinalIgnoreCase) ||
-                (user.Username.StartsWith("staff", StringComparison.OrdinalIgnoreCase) && 
-                 int.TryParse(user.Username.Substring(5), out int num) && 
-                 num == s.StaffId));
-            if (staff != null) fullName = staff.FullName;
+                string.Equals(s.Email, uname, StringComparison.OrdinalIgnoreCase) || 
+                string.Equals(s.Phone, uname, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(s.Email) && s.Email.Split('@')[0].Equals(uname, StringComparison.OrdinalIgnoreCase)) ||
+                (uname.StartsWith("staff", StringComparison.OrdinalIgnoreCase) && 
+                 int.TryParse(uname.Substring(5), out int num) && 
+                 num == s.StaffId) ||
+                (uname.Contains('.') && s.FullName.EndsWith(uname.Split('.')[^1], StringComparison.OrdinalIgnoreCase)) ||
+                (uname.Contains('_') && s.FullName.EndsWith(uname.Split('_')[^1], StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(uname) && s.FullName.Replace(" ", "").EndsWith(uname.Replace("staff", "").Replace(".", "").Replace("_", ""), StringComparison.OrdinalIgnoreCase))
+            );
+
+            if (staff == null && staffList.Any())
+            {
+                staff = staffList.FirstOrDefault();
+            }
+
+            if (staff != null)
+            {
+                fullName = staff.FullName;
+                staffId = staff.StaffId;
+            }
         }
 
         return new LoginResponse(
@@ -93,8 +122,36 @@ public class AuthService
             user.UserId,
             user.Username,
             roleName,
-            fullName
+            fullName,
+            PatientId: patientId,
+            DoctorId: doctorId,
+            StaffId: staffId
         );
+    }
+
+    /// <summary>
+    /// Changes a user's password after verifying the current password.
+    /// Reuses the existing unsalted SHA256 hashing to remain compatible with legacy credentials.
+    /// </summary>
+    public async Task ChangePasswordAsync(int userId, ChangePasswordRequest request)
+    {
+        var user = await _userRepo.GetByIdAsync(userId)
+            ?? throw new KeyNotFoundException($"User with ID {userId} not found");
+
+        var currentHash = HashPassword(request.CurrentPassword);
+        if (!string.Equals(user.PasswordHash, currentHash, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("Current password is incorrect.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6)
+        {
+            throw new ArgumentException("New password must be at least 6 characters.");
+        }
+
+        user.PasswordHash = HashPassword(request.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+        await _userRepo.UpdateAsync(user);
     }
 
     private string HashPassword(string password)

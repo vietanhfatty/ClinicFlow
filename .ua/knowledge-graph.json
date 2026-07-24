@@ -1,0 +1,381 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "Hospital Management System (PRN232)",
+    "languages": ["csharp", "sql", "json"],
+    "frameworks": [".NET 8", "ASP.NET Core", "Entity Framework Core"],
+    "description": "A comprehensive hospital management system for managing patients, doctors, appointments, medical records, and lab tests using .NET 8 and SQL Server.",
+    "analyzedAt": "2026-07-24T00:00:00Z",
+    "gitCommitHash": "e7d5c0506af28ff75af174f8365508322d01a13f"
+  },
+  "nodes": [
+    {
+      "id": "file:database/PRN232_1.sql",
+      "type": "file",
+      "name": "Database Schema",
+      "filePath": "database/PRN232_1.sql",
+      "language": "sql",
+      "summary": "SQL Server database schema for hospital management system including tables for roles, users, staff, doctors, patients, appointments, medical records, prescriptions, lab test services, and lab test appointments.",
+      "tags": ["database", "schema", "sql", "core"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:MyProject.Domain/Entities/AppointmentLabTest.cs",
+      "type": "file",
+      "name": "AppointmentLabTest Entity",
+      "filePath": "MyProject.Domain/Entities/AppointmentLabTest.cs",
+      "language": "csharp",
+      "summary": "Domain entity representing a lab test request linked to an appointment. Contains appointment and service references, test date, results, status tracking, and notes.",
+      "tags": ["entity", "labtest", "core", "domain"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:MyProject.Domain/Entities/LabTestService.cs",
+      "type": "file",
+      "name": "LabTestService Entity",
+      "filePath": "MyProject.Domain/Entities/LabTestService.cs",
+      "language": "csharp",
+      "summary": "Domain entity representing available lab test services with pricing, categorization, and active status tracking. Collections of appointment lab tests reference this service.",
+      "tags": ["entity", "labtest", "service", "domain"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:MyProject.Application/Services/AppointmentService.cs",
+      "type": "file",
+      "name": "Appointment Service",
+      "filePath": "MyProject.Application/Services/AppointmentService.cs",
+      "language": "csharp",
+      "summary": "Business logic service for managing appointments including CRUD operations, status transitions (Pending→Confirmed→InProgress→Completed), validation, and DTO mapping.",
+      "tags": ["service", "business-logic", "appointment", "core"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:MyProject.Application/Services/MedicalRecordService.cs",
+      "type": "file",
+      "name": "Medical Record Service",
+      "filePath": "MyProject.Application/Services/MedicalRecordService.cs",
+      "language": "csharp",
+      "summary": "Service layer handling medical records and prescriptions with repository injection, async operations, and complex DTO mapping including related patient and doctor data.",
+      "tags": ["service", "medical-record", "prescription", "business-logic"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:MyProject.Application/DTOs/AppointmentDto.cs",
+      "type": "file",
+      "name": "Appointment DTOs",
+      "filePath": "MyProject.Application/DTOs/AppointmentDto.cs",
+      "language": "csharp",
+      "summary": "Data transfer objects for appointments using C# records with validation attributes. Includes AppointmentDto, CreateAppointmentRequest, and UpdateAppointmentRequest.",
+      "tags": ["dto", "appointment", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:MyProject.Application/DTOs/MedicalRecordDto.cs",
+      "type": "file",
+      "name": "Medical Record DTOs",
+      "filePath": "MyProject.Application/DTOs/MedicalRecordDto.cs",
+      "language": "csharp",
+      "summary": "DTOs for medical records and prescriptions using C# record patterns with nested prescription collections.",
+      "tags": ["dto", "medical-record", "prescription"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:MyProject.WebApi/Controllers/AppointmentsController.cs",
+      "type": "file",
+      "name": "Appointments API Controller",
+      "filePath": "MyProject.WebApi/Controllers/AppointmentsController.cs",
+      "language": "csharp",
+      "summary": "RESTful API controller for appointment operations with authorization, error handling, and endpoints for CRUD, check-in, confirmation, and examination workflows.",
+      "tags": ["controller", "api", "appointment", "endpoint"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:MyProject.WebApi/Controllers/MedicalRecordsController.cs",
+      "type": "file",
+      "name": "Medical Records API Controller",
+      "filePath": "MyProject.WebApi/Controllers/MedicalRecordsController.cs",
+      "language": "csharp",
+      "summary": "API controller for medical records and prescriptions with role-based authorization for doctors and admins.",
+      "tags": ["controller", "api", "medical-record"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:MyProject.Domain/IRepositories/IAppointmentLabTestRepository.cs",
+      "type": "file",
+      "name": "Lab Test Repository Interface",
+      "filePath": "MyProject.Domain/IRepositories/IAppointmentLabTestRepository.cs",
+      "language": "csharp",
+      "summary": "Repository interface contract for lab test data access including GetAll, GetById, GetByAppointmentId, Add, Update, and Delete operations.",
+      "tags": ["repository", "interface", "data-access"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:AppointmentLabTest",
+      "type": "class",
+      "name": "AppointmentLabTest Class",
+      "filePath": "MyProject.Domain/Entities/AppointmentLabTest.cs",
+      "summary": "Entity class with properties for appointment reference, service reference, doctor reference, test date, results, status (Pending/Completed), notes, and creation timestamp.",
+      "tags": ["entity", "class", "labtest"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:LabTestService",
+      "type": "class",
+      "name": "LabTestService Class",
+      "filePath": "MyProject.Domain/Entities/LabTestService.cs",
+      "summary": "Entity class representing lab test service catalog with service name, description, price, category, active status, creation date, and collection of appointment lab tests.",
+      "tags": ["entity", "class", "service"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:AppointmentService",
+      "type": "class",
+      "name": "AppointmentService Class",
+      "filePath": "MyProject.Application/Services/AppointmentService.cs",
+      "summary": "Service class with dependency injection of repositories, async methods for CRUD operations, status transitions, appointment limit validation, and DTO mapping.",
+      "tags": ["service", "business-logic", "class"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:MedicalRecordService",
+      "type": "class",
+      "name": "MedicalRecordService Class",
+      "filePath": "MyProject.Application/Services/MedicalRecordService.cs",
+      "summary": "Service class handling medical record and prescription operations with repository injection and complex data mapping.",
+      "tags": ["service", "business-logic", "class"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "concept:LabTestWorkflow",
+      "type": "concept",
+      "name": "Lab Test Workflow",
+      "summary": "Complete workflow for lab tests: Doctor requests test → Lab staff enters results → Patient views results. Involves AppointmentLabTest entity, status transitions, and role-based access.",
+      "tags": ["workflow", "pattern", "labtest"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "concept:RepositoryPattern",
+      "type": "concept",
+      "name": "Repository Pattern",
+      "summary": "Data access abstraction pattern used throughout the project with interfaces defining contracts and implementations handling Entity Framework Core database operations.",
+      "tags": ["pattern", "architecture", "data-access"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "concept:ServicePattern",
+      "type": "concept",
+      "name": "Service Pattern",
+      "summary": "Business logic abstraction with services depending on repositories, async/await for IO-bound operations, and DTO mapping for API responses.",
+      "tags": ["pattern", "architecture", "business-logic"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:LabTestServices",
+      "type": "table",
+      "name": "LabTestServices Table",
+      "filePath": "database/PRN232_1.sql",
+      "summary": "Catalog table storing available lab test services with pricing, categorization, and active status. Seed data includes 7 lab test types (blood tests, glucose, liver function, kidney function, X-ray, ultrasound, ECG).",
+      "tags": ["table", "database", "labtest"],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:AppointmentLabTests",
+      "type": "table",
+      "name": "AppointmentLabTests Table",
+      "filePath": "database/PRN232_1.sql",
+      "summary": "Junction table linking appointments to lab test requests with status tracking, test date, results, and doctor assignment for tracking which doctor requested the test.",
+      "tags": ["table", "database", "junction", "labtest"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:MyProject.Domain/Entities/AppointmentLabTest.cs",
+      "target": "file:database/PRN232_1.sql",
+      "type": "documents",
+      "weight": 0.8,
+      "description": "Entity is generated from AppointmentLabTests table schema"
+    },
+    {
+      "source": "file:MyProject.Domain/Entities/LabTestService.cs",
+      "target": "file:database/PRN232_1.sql",
+      "type": "documents",
+      "weight": 0.8,
+      "description": "Entity is generated from LabTestServices table schema"
+    },
+    {
+      "source": "file:MyProject.Application/Services/MedicalRecordService.cs",
+      "target": "file:MyProject.Domain/Entities/AppointmentLabTest.cs",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "May reference lab tests in medical context"
+    },
+    {
+      "source": "file:MyProject.WebApi/Controllers/AppointmentsController.cs",
+      "target": "file:MyProject.Application/Services/AppointmentService.cs",
+      "type": "calls",
+      "weight": 0.9,
+      "description": "Controller delegates appointment operations to service"
+    },
+    {
+      "source": "file:MyProject.WebApi/Controllers/MedicalRecordsController.cs",
+      "target": "file:MyProject.Application/Services/MedicalRecordService.cs",
+      "type": "calls",
+      "weight": 0.9,
+      "description": "Controller delegates medical record operations to service"
+    },
+    {
+      "source": "file:MyProject.Application/Services/AppointmentService.cs",
+      "target": "file:MyProject.Application/DTOs/AppointmentDto.cs",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "Service maps appointment entities to DTOs"
+    },
+    {
+      "source": "file:MyProject.Application/Services/MedicalRecordService.cs",
+      "target": "file:MyProject.Application/DTOs/MedicalRecordDto.cs",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "Service maps medical records to DTOs"
+    },
+    {
+      "source": "class:AppointmentService",
+      "target": "class:AppointmentService",
+      "type": "contains",
+      "weight": 1.0,
+      "description": "Contained in AppointmentService file"
+    },
+    {
+      "source": "class:MedicalRecordService",
+      "target": "class:MedicalRecordService",
+      "type": "contains",
+      "weight": 1.0,
+      "description": "Contained in MedicalRecordService file"
+    },
+    {
+      "source": "class:AppointmentLabTest",
+      "target": "table:AppointmentLabTests",
+      "type": "maps_to",
+      "weight": 0.8,
+      "description": "Entity maps to database table"
+    },
+    {
+      "source": "class:LabTestService",
+      "target": "table:LabTestServices",
+      "type": "maps_to",
+      "weight": 0.8,
+      "description": "Entity maps to database table"
+    },
+    {
+      "source": "concept:LabTestWorkflow",
+      "target": "file:MyProject.Domain/Entities/AppointmentLabTest.cs",
+      "type": "related",
+      "weight": 0.7,
+      "description": "Workflow is implemented through AppointmentLabTest entity"
+    },
+    {
+      "source": "concept:RepositoryPattern",
+      "target": "file:MyProject.Domain/IRepositories/IAppointmentLabTestRepository.cs",
+      "type": "related",
+      "weight": 0.7,
+      "description": "Repository pattern exemplified by lab test repository"
+    },
+    {
+      "source": "concept:ServicePattern",
+      "target": "file:MyProject.Application/Services/AppointmentService.cs",
+      "type": "related",
+      "weight": 0.7,
+      "description": "Service pattern exemplified by appointment service"
+    },
+    {
+      "source": "concept:ServicePattern",
+      "target": "file:MyProject.Application/Services/MedicalRecordService.cs",
+      "type": "related",
+      "weight": 0.7,
+      "description": "Service pattern exemplified by medical record service"
+    },
+    {
+      "source": "table:AppointmentLabTests",
+      "target": "table:LabTestServices",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "AppointmentLabTests has foreign key to LabTestServices"
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:database",
+      "name": "Database Layer",
+      "description": "SQL Server database containing core tables and relationships for hospital data persistence",
+      "nodeIds": ["file:database/PRN232_1.sql", "table:LabTestServices", "table:AppointmentLabTests"]
+    },
+    {
+      "id": "layer:domain",
+      "name": "Domain Layer",
+      "description": "Business domain entities and interfaces defining core models and repository contracts",
+      "nodeIds": ["file:MyProject.Domain/Entities/AppointmentLabTest.cs", "file:MyProject.Domain/Entities/LabTestService.cs", "class:AppointmentLabTest", "class:LabTestService", "file:MyProject.Domain/IRepositories/IAppointmentLabTestRepository.cs", "concept:RepositoryPattern"]
+    },
+    {
+      "id": "layer:application",
+      "name": "Application Layer",
+      "description": "Business logic services and DTOs for orchestrating domain objects and managing workflows",
+      "nodeIds": ["file:MyProject.Application/Services/AppointmentService.cs", "file:MyProject.Application/Services/MedicalRecordService.cs", "file:MyProject.Application/DTOs/AppointmentDto.cs", "file:MyProject.Application/DTOs/MedicalRecordDto.cs", "class:AppointmentService", "class:MedicalRecordService", "concept:ServicePattern"]
+    },
+    {
+      "id": "layer:api",
+      "name": "API Layer",
+      "description": "RESTful API endpoints exposing hospital operations with authorization and error handling",
+      "nodeIds": ["file:MyProject.WebApi/Controllers/AppointmentsController.cs", "file:MyProject.WebApi/Controllers/MedicalRecordsController.cs"]
+    },
+    {
+      "id": "layer:concepts",
+      "name": "Architectural Concepts",
+      "description": "Design patterns and workflows used throughout the system",
+      "nodeIds": ["concept:LabTestWorkflow"]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Database Schema Overview",
+      "description": "Start by understanding the database structure. The hospital system uses SQL Server with tables for roles, users, staff, doctors, patients, appointments, medical records, prescriptions, and lab tests. Pay special attention to LabTestServices (catalog) and AppointmentLabTests (requests).",
+      "nodeIds": ["file:database/PRN232_1.sql", "table:LabTestServices", "table:AppointmentLabTests"]
+    },
+    {
+      "order": 2,
+      "title": "Domain Entities - Lab Test Models",
+      "description": "Examine the domain layer entities that map to the database. LabTestService represents the test catalog, while AppointmentLabTest represents requests linked to appointments.",
+      "nodeIds": ["file:MyProject.Domain/Entities/LabTestService.cs", "file:MyProject.Domain/Entities/AppointmentLabTest.cs", "class:LabTestService", "class:AppointmentLabTest"]
+    },
+    {
+      "order": 3,
+      "title": "Repository Pattern - Data Access",
+      "description": "Learn how data access is abstracted through the repository pattern. The IAppointmentLabTestRepository interface defines the contract for lab test data operations.",
+      "nodeIds": ["file:MyProject.Domain/IRepositories/IAppointmentLabTestRepository.cs", "concept:RepositoryPattern"]
+    },
+    {
+      "order": 4,
+      "title": "Service Pattern - Business Logic",
+      "description": "Explore how business logic is organized in services. AppointmentService and MedicalRecordService show the service pattern with dependency injection, async operations, and DTO mapping.",
+      "nodeIds": ["file:MyProject.Application/Services/AppointmentService.cs", "file:MyProject.Application/Services/MedicalRecordService.cs", "class:AppointmentService", "class:MedicalRecordService", "concept:ServicePattern"]
+    },
+    {
+      "order": 5,
+      "title": "Data Transfer Objects - DTOs",
+      "description": "See how DTOs are structured using C# records. AppointmentDto and MedicalRecordDto show the pattern with validation attributes and separation of concerns.",
+      "nodeIds": ["file:MyProject.Application/DTOs/AppointmentDto.cs", "file:MyProject.Application/DTOs/MedicalRecordDto.cs"]
+    },
+    {
+      "order": 6,
+      "title": "API Controllers - REST Endpoints",
+      "description": "Examine the API layer controllers that expose operations to clients. AppointmentsController and MedicalRecordsController show endpoint design, authorization, and error handling patterns.",
+      "nodeIds": ["file:MyProject.WebApi/Controllers/AppointmentsController.cs", "file:MyProject.WebApi/Controllers/MedicalRecordsController.cs"]
+    },
+    {
+      "order": 7,
+      "title": "Lab Test Workflow",
+      "description": "Understand the complete lab test workflow: Doctor requests test → Lab staff processes → Patient views results. This workflow is orchestrated through the AppointmentLabTest entity and service layer.",
+      "nodeIds": ["concept:LabTestWorkflow", "file:MyProject.Domain/Entities/AppointmentLabTest.cs", "file:MyProject.Application/Services/MedicalRecordService.cs"]
+    }
+  ]
+}

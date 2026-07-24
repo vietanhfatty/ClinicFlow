@@ -2,317 +2,149 @@
 @using MyProject.Application.DTOs
 
 @{
-    ViewData["Title"] = "Appointments Registry";
-    var patients = ViewBag.Patients as IEnumerable<PatientDto> ?? Enumerable.Empty<PatientDto>();
+    ViewData["Title"] = "Danh sách lịch hẹn";
     var doctors = ViewBag.Doctors as IEnumerable<DoctorDto> ?? Enumerable.Empty<DoctorDto>();
 }
+
+<partial name="~/Views/Shared/_AppointmentStyles.cshtml" />
 
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0 text-gray-800">Appointments Registry</h1>
-            <p class="text-muted small mb-0">Record and manage patient appointments and check-in queues</p>
+            <h3 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-calendar-check text-success me-2"></i>Danh sách lịch hẹn
+            </h3>
+            <p class="text-muted small mb-0">Quản lý và theo dõi các lịch hẹn khám bệnh</p>
         </div>
         <div>
             @if (User.IsInRole("Doctor"))
             {
-                <a asp-action="Queue" class="btn btn-success shadow-sm rounded-pill px-4 me-2">
-                    <i class="fa-solid fa-people-queue me-1"></i> My Waiting Queue
+                <a asp-action="Queue" class="btn btn-outline-success shadow-sm rounded-pill px-4 me-2">
+                    <i class="fa-solid fa-people-queue me-1"></i> Hàng chờ của tôi
                 </a>
             }
-            <button type="button" class="btn btn-primary shadow-sm rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#createAppointmentModal">
-                <i class="fa-solid fa-plus-circle me-1"></i> Book Appointment
-            </button>
+            <a asp-action="WalkIn" class="btn btn-outline-primary shadow-sm rounded-pill px-4 me-2">
+                <i class="fa-solid fa-person-walking me-1"></i> Khám trực tiếp
+            </a>
+            <a asp-action="Create" class="btn btn-success shadow-sm rounded-pill px-4">
+                <i class="fa-solid fa-plus-circle me-1"></i> Đặt lịch khám
+            </a>
         </div>
     </div>
 
-    <!-- Advanced filters bar -->
-    <div class="card shadow-sm border-0 rounded-4 mb-4">
+    <!-- Filter Bar -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4 filter-bar">
         <div class="card-body p-3">
             <div class="row g-3 align-items-end">
-                <!-- Patient Name search -->
                 <div class="col-md-3">
-                    <label for="patientSearchInput" class="form-label fw-bold small text-muted">Search Patient</label>
+                    <label for="patientSearchInput" class="form-label appt-label">Tìm bệnh nhân</label>
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0">
                             <i class="fa-solid fa-user text-muted"></i>
                         </span>
-                        <input type="text" id="patientSearchInput" class="form-control border-start-0 rounded-end-3" placeholder="Search patient name..." />
+                        <input type="text" id="patientSearchInput" class="form-control border-start-0" 
+                               placeholder="Nhập tên bệnh nhân..." />
                     </div>
                 </div>
 
-                <!-- Doctor select dropdown -->
                 <div class="col-md-3">
-                    <label for="doctorFilterSelect" class="form-label fw-bold small text-muted">Filter Doctor</label>
-                    <select id="doctorFilterSelect" class="form-select rounded-3">
-                        <option value="">All Doctors</option>
+                    <label for="doctorFilterSelect" class="form-label appt-label">Lọc theo bác sĩ</label>
+                    <select id="doctorFilterSelect" class="form-select">
+                        <option value="">Tất cả bác sĩ</option>
                         @foreach (var doc in doctors)
                         {
-                            <option value="@doc.DoctorId">@doc.FullName (@(string.IsNullOrEmpty(doc.Specialization) ? "General" : doc.Specialization))</option>
+                            <option value="@doc.DoctorId">@doc.FullName (@(string.IsNullOrEmpty(doc.Specialization) ? "Khám tổng quát" : doc.Specialization))</option>
                         }
                     </select>
                 </div>
 
-                <!-- Date Picker -->
                 <div class="col-md-3">
-                    <label for="dateFilterInput" class="form-label fw-bold small text-muted">Filter Date</label>
+                    <label for="dateFilterInput" class="form-label appt-label">Lọc theo ngày</label>
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0">
                             <i class="fa-solid fa-calendar text-muted"></i>
                         </span>
-                        <input type="date" id="dateFilterInput" class="form-control border-start-0 rounded-end-3" />
+                        <input type="date" id="dateFilterInput" class="form-control border-start-0" />
                     </div>
                 </div>
 
-                <!-- Quick Date Filters -->
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small text-muted d-block">Quick Date Filters</label>
+                    <label class="form-label appt-label d-block">Lọc nhanh theo ngày</label>
                     <div class="btn-group w-100" role="group">
-                        <button type="button" id="btnFilterAll" class="btn btn-outline-primary px-2 py-2 text-nowrap">All</button>
-                        <button type="button" id="btnFilterToday" class="btn btn-outline-primary px-2 py-2 text-nowrap">Today</button>
-                        <button type="button" id="btnFilterTomorrow" class="btn btn-outline-primary px-2 py-2 text-nowrap">Tomorrow</button>
-                        <button type="button" id="btnFilterThisWeek" class="btn btn-outline-primary px-2 py-2 text-nowrap">This Week</button>
+                        <button type="button" id="btnFilterAll" class="btn btn-outline-primary quick-filter-btn">Tất cả</button>
+                        <button type="button" id="btnFilterToday" class="btn btn-outline-primary quick-filter-btn">Hôm nay</button>
+                        <button type="button" id="btnFilterTomorrow" class="btn btn-outline-primary quick-filter-btn">Ngày mai</button>
+                        <button type="button" id="btnFilterThisWeek" class="btn btn-outline-primary quick-filter-btn">Tuần này</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Appointments Table -->
     <div class="card shadow-sm border-0 rounded-4 mb-4">
-        <div class="card-header bg-white py-3">
-            <h6 class="m-0 fw-bold text-primary">Appointment Bookings (@Model.Count() records)</h6>
+        <div class="card-header appt-card-header">
+            <h6 class="m-0 fw-bold">Danh sách lịch hẹn (@Model.Count() bản ghi)</h6>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="appointmentTable">
-                    <thead class="table-light text-uppercase font-monospace fs-7">
+                <table class="table table-hover align-middle mb-0 table-appointment" id="appointmentTable">
+                    <thead>
                         <tr>
-                            <th class="ps-4">ID</th>
-                            <th>Patient Name</th>
-                            <th>Doctor Name</th>
-                            <th>Staff Created</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Status</th>
-                            <th class="text-end pe-4">Actions</th>
+                            <th class="ps-4">Bệnh nhân</th>
+                            <th>Bác sĩ</th>
+                            <th>Nhân viên tạo</th>
+                            <th>Ngày</th>
+                            <th>Giờ</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end pe-4">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            var safeReason = (item.Reason ?? "").Replace("'", "\\'").Replace("\n", " ").Replace("\r", "");
-                            var apptDateStr = item.AppointmentDate.ToString("yyyy-MM-dd");
-                            var apptTimeStr = item.AppointmentTime.ToString(@"hh\:mm");
-
                             <tr class="appt-row" data-doctor-id="@item.DoctorId" data-date="@item.AppointmentDate.ToString("yyyy-MM-dd")">
-                                <td class="ps-4 fw-bold text-secondary">#@item.AppointmentId</td>
-                                <td class="fw-bold text-dark appt-patient">@item.PatientName</td>
+                                <td class="ps-4 fw-bold text-dark appt-patient">@item.PatientName</td>
                                 <td class="appt-doctor">@item.DoctorName</td>
-                                <td class="text-secondary small">@(item.StaffName ?? "Online Booking")</td>
+                                <td class="text-secondary small">@(item.StaffName ?? "Đặt trực tuyến")</td>
                                 <td>@item.AppointmentDate.ToString("yyyy-MM-dd")</td>
-                                <td>@apptTimeStr</td>
+                                <td>@item.AppointmentTime.ToString(@"hh\:mm")</td>
                                 <td>
                                     @if (item.Status == "Pending")
                                     {
-                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2">Pending</span>
+                                        <span class="badge badge-pending rounded-pill px-2">Chờ xác nhận</span>
                                     }
                                     else if (item.Status == "Confirmed")
                                     {
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2">Confirmed</span>
+                                        <span class="badge badge-confirmed rounded-pill px-2">Đã xác nhận</span>
                                     }
                                     else if (item.Status == "Completed")
                                     {
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2">Completed</span>
+                                        <span class="badge badge-completed rounded-pill px-2">Hoàn thành</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2">Cancelled</span>
+                                        <span class="badge badge-cancelled rounded-pill px-2">Đã hủy</span>
                                     }
                                 </td>
                                 <td class="text-end pe-4">
+                                    <a asp-action="Details" asp-route-id="@item.AppointmentId" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                                        <i class="fa-solid fa-eye me-1"></i> Xem
+                                    </a>
                                     @if (item.Status == "Pending")
                                     {
-                                        <form asp-action="CheckIn" asp-route-id="@item.AppointmentId" method="post" class="d-inline-block me-1">
+                                        <form asp-action="CheckIn" asp-route-id="@item.AppointmentId" method="post" class="d-inline-block ms-1">
                                             @Html.AntiForgeryToken()
                                             <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
-                                                <i class="fa-solid fa-clipboard-check me-1"></i>Confirm
+                                                <i class="fa-solid fa-clipboard-check me-1"></i> Check-in
                                             </button>
                                         </form>
-                                    }
-                                    <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1"
-                                            onclick="openEditAppointmentModal(@item.AppointmentId, @item.PatientId, @item.DoctorId, '@apptDateStr', '@apptTimeStr', '@item.Status', '@safeReason')">
-                                        <i class="fa-solid fa-edit"></i>
-                                    </button>
-                                    <a asp-action="Details" asp-route-id="@item.AppointmentId" class="btn btn-sm btn-outline-info rounded-pill px-3 me-1">
-                                        <i class="fa-solid fa-info-circle"></i>
-                                    </a>
-                                    @if (User.IsInRole("Admin"))
-                                    {
-                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                                onclick="openDeleteAppointmentModal(@item.AppointmentId, '@item.PatientName'.replace(/'/g, ''))">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
                                     }
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Create Appointment Modal -->
-<div class="modal fade" id="createAppointmentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-primary text-white rounded-top-4">
-                <h5 class="modal-title"><i class="fa-solid fa-calendar-plus me-2"></i>Book New Appointment</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form asp-action="Create" method="post">
-                @Html.AntiForgeryToken()
-                <div class="modal-body p-4">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Select Patient</label>
-                            <select name="PatientId" class="form-select rounded-3" required>
-                                <option value="">-- Select Patient --</option>
-                                @foreach (var pat in patients)
-                                {
-                                    <option value="@pat.PatientId">@pat.FullName (@(pat.Phone ?? "N/A"))</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Select Doctor</label>
-                            <select name="DoctorId" class="form-select rounded-3" required>
-                                <option value="">-- Select Doctor --</option>
-                                @foreach (var doc in doctors)
-                                {
-                                    <option value="@doc.DoctorId">@doc.FullName (@(string.IsNullOrEmpty(doc.Specialization) ? "General" : doc.Specialization))</option>
-                                }
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Appointment Date</label>
-                            <input type="date" name="AppointmentDate" class="form-control rounded-3" required />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Appointment Time</label>
-                            <input type="time" name="AppointmentTime" class="form-control rounded-3" required />
-                        </div>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label fw-bold small text-muted">Reason for Visit</label>
-                        <textarea name="Reason" rows="2" class="form-control rounded-3" placeholder="Enter reason for booking..."></textarea>
-                    </div>
-                    <input type="hidden" name="Status" value="Pending" />
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">
-                        <i class="fa-solid fa-calendar-check me-1"></i> Book Appointment
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Appointment Modal -->
-<div class="modal fade" id="editAppointmentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-warning text-dark rounded-top-4">
-                <h5 class="modal-title"><i class="fa-solid fa-edit me-2"></i>Modify Appointment Booking</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editAppointmentForm" method="post">
-                @Html.AntiForgeryToken()
-                <div class="modal-body p-4">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Select Patient</label>
-                            <select name="PatientId" id="editApptPatientId" class="form-select rounded-3" required>
-                                @foreach (var pat in patients)
-                                {
-                                    <option value="@pat.PatientId">@pat.FullName (@(pat.Phone ?? "N/A"))</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Select Doctor</label>
-                            <select name="DoctorId" id="editApptDoctorId" class="form-select rounded-3" required>
-                                @foreach (var doc in doctors)
-                                {
-                                    <option value="@doc.DoctorId">@doc.FullName (@(string.IsNullOrEmpty(doc.Specialization) ? "General" : doc.Specialization))</option>
-                                }
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Appointment Date</label>
-                            <input type="date" name="AppointmentDate" id="editApptDate" class="form-control rounded-3" required />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Appointment Time</label>
-                            <input type="time" name="AppointmentTime" id="editApptTime" class="form-control rounded-3" required />
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold small text-muted">Status</label>
-                            <select name="Status" id="editApptStatus" class="form-select rounded-3">
-                                <option value="Pending">Pending</option>
-                                <option value="Confirmed">Confirmed</option>
-                                <option value="Completed">Completed</option>
-                                <option value="Cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label fw-bold small text-muted">Reason for Visit</label>
-                        <textarea name="Reason" id="editApptReason" rows="2" class="form-control rounded-3"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-warning rounded-pill px-4">
-                        <i class="fa-solid fa-save me-1"></i> Save Changes
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirm Modal -->
-<div class="modal fade" id="deleteAppointmentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-danger text-white rounded-top-4">
-                <h5 class="modal-title"><i class="fa-solid fa-trash-alt me-2"></i>Delete Appointment</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4 text-center">
-                <i class="fa-solid fa-exclamation-triangle fa-3x text-danger mb-3"></i>
-                <p class="mb-1">Delete appointment for:</p>
-                <p class="fw-bold fs-6" id="deleteApptPatientName"></p>
-                <p class="text-muted small">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer border-0 pt-0 justify-content-center">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteAppointmentForm" method="post">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-danger rounded-pill px-4">
-                        <i class="fa-solid fa-trash-alt me-1"></i> Delete
-                    </button>
-                </form>
             </div>
         </div>
     </div>
@@ -328,7 +160,7 @@
         const btnTomorrow = document.getElementById('btnFilterTomorrow');
         const btnThisWeek = document.getElementById('btnFilterThisWeek');
 
-        let activeDateMode = 'all'; // 'all', 'today', 'tomorrow', 'thisweek', 'custom'
+        let activeDateMode = 'today';
 
         function getTodayDateString() {
             const now = new Date();
@@ -347,25 +179,21 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Initialize default filter to All
-        dateInput.value = '';
+        // Initialize default filter to Today
+        dateInput.value = getTodayDateString();
         updateQuickButtonStyles();
         applyFilters();
 
         function updateQuickButtonStyles() {
-            btnAll.classList.toggle('active', activeDateMode === 'all');
             btnAll.classList.toggle('btn-primary', activeDateMode === 'all');
             btnAll.classList.toggle('btn-outline-primary', activeDateMode !== 'all');
 
-            btnToday.classList.toggle('active', activeDateMode === 'today');
             btnToday.classList.toggle('btn-primary', activeDateMode === 'today');
             btnToday.classList.toggle('btn-outline-primary', activeDateMode !== 'today');
 
-            btnTomorrow.classList.toggle('active', activeDateMode === 'tomorrow');
             btnTomorrow.classList.toggle('btn-primary', activeDateMode === 'tomorrow');
             btnTomorrow.classList.toggle('btn-outline-primary', activeDateMode !== 'tomorrow');
 
-            btnThisWeek.classList.toggle('active', activeDateMode === 'thisweek');
             btnThisWeek.classList.toggle('btn-primary', activeDateMode === 'thisweek');
             btnThisWeek.classList.toggle('btn-outline-primary', activeDateMode !== 'thisweek');
         }
@@ -451,26 +279,10 @@
 
         btnThisWeek.addEventListener('click', function() {
             activeDateMode = 'thisweek';
-            dateInput.value = ''; // Clear picker to show it's a range
+            dateInput.value = '';
             updateQuickButtonStyles();
             applyFilters();
         });
 
-        function openEditAppointmentModal(id, patientId, doctorId, apptDate, apptTime, status, reason) {
-            document.getElementById('editApptPatientId').value = patientId;
-            document.getElementById('editApptDoctorId').value = doctorId;
-            document.getElementById('editApptDate').value = apptDate;
-            document.getElementById('editApptTime').value = apptTime;
-            document.getElementById('editApptStatus').value = status;
-            document.getElementById('editApptReason').value = reason;
-            document.getElementById('editAppointmentForm').action = '/Appointments/Edit/' + id;
-            new bootstrap.Modal(document.getElementById('editAppointmentModal')).show();
-        }
-
-        function openDeleteAppointmentModal(id, patientName) {
-            document.getElementById('deleteApptPatientName').textContent = patientName;
-            document.getElementById('deleteAppointmentForm').action = '/Appointments/Delete/' + id;
-            new bootstrap.Modal(document.getElementById('deleteAppointmentModal')).show();
-        }
     </script>
 }

@@ -9,14 +9,9 @@
     <!-- Welcome banner -->
     <div class="card shadow-sm border-0 rounded-4 bg-white p-4 mb-4">
         <div class="row align-items-center">
-            <div class="col-md-8">
+            <div class="col-md-12">
                 <h2 class="fw-bold text-dark">Hello, @Model.FullName!</h2>
-                <p class="text-muted mb-0">Welcome to your Personal Health Portal. Access your records, book new appointments, and view histories.</p>
-            </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <a asp-action="BookAppointment" class="btn btn-success rounded-pill px-4 py-2">
-                    <i class="fa-solid fa-calendar-plus me-1"></i> Book Appointment
-                </a>
+                <p class="text-muted mb-0">Welcome to your Personal Health Portal. Access your records and view histories.</p>
             </div>
         </div>
     </div>
@@ -90,8 +85,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light text-uppercase font-monospace fs-7">
                         <tr>
-                            <th class="ps-4">Appointment ID</th>
-                            <th>Attending Doctor</th>
+                            <th class="ps-4">Attending Doctor</th>
                             <th>Date</th>
                             <th>Time</th>
                             <th>Status</th>
@@ -102,18 +96,17 @@
                         @if (!upcoming.Any())
                         {
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
+                                <td colspan="5" class="text-center py-5 text-muted">
                                     <i class="fa-solid fa-calendar-xmark fa-3x mb-3 text-secondary"></i>
                                     <p class="mb-0 fw-bold">No active appointments scheduled!</p>
-                                    <p class="small text-muted mb-0">Book a new appointment using the button above.</p>
+                                    <p class="small text-muted mb-0">Please contact the front desk to schedule an appointment.</p>
                                 </td>
                             </tr>
                         }
                         @foreach (var app in upcoming)
                         {
                             <tr>
-                                <td class="ps-4 fw-bold text-secondary">#@app.AppointmentId</td>
-                                <td class="fw-bold text-dark">@app.DoctorName</td>
+                                <td class="ps-4 fw-bold text-dark">@app.DoctorName</td>
                                 <td>@app.AppointmentDate.ToString("yyyy-MM-dd")</td>
                                 <td>@app.AppointmentTime.ToString(@"hh\:mm")</td>
                                 <td>

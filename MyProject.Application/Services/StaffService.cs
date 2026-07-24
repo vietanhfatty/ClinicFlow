@@ -124,13 +124,16 @@ public class StaffService
 
     private StaffDto MapToDto(Staff s, IEnumerable<User> users)
     {
-        // Try to match user by staff Email or Phone, or by sequential username staff01 -> StaffId 1
         var user = users.FirstOrDefault(u => 
             string.Equals(u.Username, s.Email, StringComparison.OrdinalIgnoreCase) || 
             string.Equals(u.Username, s.Phone, StringComparison.OrdinalIgnoreCase) ||
+            (!string.IsNullOrEmpty(s.Email) && s.Email.Split('@')[0].Equals(u.Username, StringComparison.OrdinalIgnoreCase)) ||
             (u.Username.StartsWith("staff", StringComparison.OrdinalIgnoreCase) && 
              int.TryParse(u.Username.Substring(5), out int num) && 
-             num == s.StaffId)
+             num == s.StaffId) ||
+            (u.Username.Contains('.') && s.FullName.EndsWith(u.Username.Split('.')[^1], StringComparison.OrdinalIgnoreCase)) ||
+            (u.Username.Contains('_') && s.FullName.EndsWith(u.Username.Split('_')[^1], StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrEmpty(u.Username) && s.FullName.Replace(" ", "").EndsWith(u.Username.Replace("staff", "").Replace(".", "").Replace("_", ""), StringComparison.OrdinalIgnoreCase))
         );
         return new StaffDto(
             s.StaffId,

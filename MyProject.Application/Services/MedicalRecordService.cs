@@ -94,17 +94,37 @@ public class MedicalRecordService
             p.Instruction
         )).ToList();
 
+        var labTests = mr.Appointment?.AppointmentLabTests?.Select(lt => new AppointmentLabTestDto(
+            lt.AppointmentLabTestId,
+            lt.AppointmentId,
+            lt.Appointment?.Patient?.FullName ?? "Unknown",
+            lt.Doctor?.FullName ?? "Unknown",
+            lt.LabTestServiceId,
+            lt.LabTestService?.ServiceName ?? "Unknown",
+            lt.LabTestService?.Price ?? 0m,
+            lt.TestDate,
+            lt.Result ?? "",
+            lt.Status,
+            lt.Notes ?? "",
+            lt.CreatedAt,
+            new List<LabTestIndicatorValueDto>()
+        )).ToList() ?? new List<AppointmentLabTestDto>();
+
         return new MedicalRecordDto(
             mr.MedicalRecordId,
             mr.AppointmentId,
             patientName,
             doctorName,
+            mr.Appointment?.AppointmentDate ?? DateOnly.MinValue,
+            mr.Appointment?.AppointmentTime ?? TimeSpan.Zero,
+            mr.Appointment?.Status ?? "Unknown",
             mr.Symptoms,
             mr.Diagnosis,
             mr.Treatment,
             mr.Notes,
             mr.CreatedAt,
-            prescriptions
+            prescriptions,
+            labTests
         );
     }
 }

@@ -1,0 +1,490 @@
+@model MyProject.Application.DTOs.AppointmentDto
+@using MyProject.Application.DTOs
+
+@{
+    ViewData["Title"] = "Khám bệnh";
+    var history = ViewBag.MedicalHistory as List<MedicalRecordDto> ?? new();
+    var labTests = ViewBag.LabTests as List<AppointmentLabTestDto> ?? new();
+    var patient = ViewBag.Patient as PatientDto;
+    var activeServices = ViewBag.ActiveLabServices as List<LabTestServiceDto> ?? new();
+}
+
+<partial name="~/Views/Shared/_AppointmentStyles.cshtml" />
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-stethoscope text-primary me-2"></i>Phiên khám bệnh
+            </h3>
+            <p class="text-muted small mb-0">Đang khám bệnh nhân: <strong>@Model.PatientName</strong></p>
+        </div>
+        <div>
+            <a asp-action="Queue" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại hàng chờ
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left column: Patient info + actions -->
+        <div class="col-lg-4">
+            <!-- Patient Info Card -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-header bg-primary text-white rounded-top-4">
+                    <h5 class="m-0 fw-bold"><i class="fa-solid fa-user-injured me-2"></i>Thông tin bệnh nhân</h5>
+                </div>
+                <div class="card-body p-3">
+                    @if (patient != null)
+                    {
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width:56px;height:56px;">
+                                <i class="fa-solid fa-user text-primary fa-lg"></i>
+                            </div>
+                            <div class="ms-3">
+                                <div class="fw-bold text-dark fs-5">@patient.FullName</div>
+                                <div class="text-muted small">@(patient.Phone ?? "Chưa có SDT")</div>
+                            </div>
+                        </div>
+                        <div class="row g-2 small">
+                            <div class="col-6">
+                                <div class="text-muted fw-semibold small">NGÀY SINH</div>
+                                <div class="text-dark">@(patient.DateOfBirth?.ToString("dd/MM/yyyy") ?? "—")</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted fw-semibold small">GIỚI TÍNH</div>
+                                <div class="text-dark">@(patient.Gender ?? "—")</div>
+                            </div>
+                            <div class="col-12">
+                                <div class="text-muted fw-semibold small">ĐỊA CHỈ</div>
+                                <div class="text-dark">@(string.IsNullOrEmpty(patient.Address) ? "—" : patient.Address)</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted text-center py-3">Không có thông tin bệnh nhân.</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Appointment Info Card -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-header appt-card-header rounded-top-4">
+                    <h6 class="m-0 fw-bold" style="color:var(--appt-accent);"><i class="fa-solid fa-calendar-check me-2"></i>Thông tin lịch hẹn</h6>
+                </div>
+                <div class="card-body p-3">
+                    <div class="row g-2 small">
+                        <div class="col-6">
+                            <div class="text-muted fw-semibold small">NGÀY KHÁM</div>
+                            <div class="text-dark fw-bold">@Model.AppointmentDate.ToString("dd/MM/yyyy")</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted fw-semibold small">GIỜ HẸN</div>
+                            <div class="text-dark fw-bold">@Model.AppointmentTime.ToString(@"hh\:mm")</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="text-muted fw-semibold small">BÁC SĨ</div>
+                            <div class="text-dark">@Model.DoctorName</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="text-muted fw-semibold small">TRẠNG THÁI</div>
+                            @if (Model.Status == "InProgress")
+                            {
+                                <span class="badge bg-primary rounded-pill px-2">Đang khám</span>
+                            }
+                            else if (Model.Status == "Completed")
+                            {
+                                <span class="badge badge-completed rounded-pill px-2">Hoàn thành</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-pending rounded-pill px-2">@Model.Status</span>
+                            }
+                        </div>
+                        <div class="col-12">
+                            <div class="text-muted fw-semibold small">LÝ DO KHÁM</div>
+                            <div class="text-dark">@(string.IsNullOrEmpty(Model.Reason) ? "Không có" : Model.Reason)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-header bg-success text-white rounded-top-4">
+                    <h5 class="m-0 fw-bold"><i class="fa-solid fa-bolt me-2"></i>Hành động</h5>
+                </div>
+                <div class="card-body p-3 d-flex flex-column gap-2">
+                    @if (Model.Status == "InProgress")
+                    {
+                        <form asp-action="Complete" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.AppointmentId" />
+                            <button type="submit" class="btn btn-success w-100 rounded-pill py-2 fw-bold">
+                                <i class="fa-solid fa-check-circle me-1"></i> Hoàn thành khám
+                            </button>
+                        </form>
+                    }
+                    @if (Model.Status == "Confirmed")
+                    {
+                        <form asp-action="StartExamination" method="post" id="startExamForm">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.AppointmentId" />
+                            <button type="submit" class="btn btn-success w-100 rounded-pill py-2 fw-bold">
+                                <i class="fa-solid fa-play me-1"></i> Bắt đầu khám
+                            </button>
+                        </form>
+                    }
+                    <button type="button" class="btn btn-outline-primary rounded-pill py-2" data-bs-toggle="modal" data-bs-target="#orderLabTestModal">
+                        <i class="fa-solid fa-flask me-1"></i> Chỉ định xét nghiệm
+                    </button>
+                    <button type="button" class="btn btn-outline-info rounded-pill py-2" data-bs-toggle="modal" data-bs-target="#followupModal">
+                        <i class="fa-solid fa-calendar-plus me-1"></i> Đặt tái khám
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column: Tabs -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header appt-card-header rounded-top-4">
+                    <ul class="nav nav-pills card-header-pills" id="examTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-pane" type="button" role="tab">
+                                <i class="fa-solid fa-clock-rotate-left me-1"></i> Lịch sử bệnh án (@history.Count)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="labtests-tab" data-bs-toggle="tab" data-bs-target="#labtests-pane" type="button" role="tab">
+                                <i class="fa-solid fa-flask me-1"></i> Xét nghiệm (@labTests.Count)
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body p-4">
+                    <div class="tab-content" id="examTabsContent">
+                        <!-- Medical History Tab -->
+                        <div class="tab-pane fade show active" id="history-pane" role="tabpanel" aria-labelledby="history-tab">
+                            @if (!history.Any())
+                            {
+                                <div class="text-center py-5 text-muted bg-light rounded-3">
+                                    <i class="fa-solid fa-folder-open fa-3x mb-3 text-secondary"></i>
+                                    <p class="mb-0 fw-bold">Chưa có lịch sử bệnh án nào.</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="position-relative" style="border-left:2px solid #e9ecef; margin-left:10px; padding-left:20px;">
+                                    @foreach (var record in history.OrderByDescending(r => r.CreatedAt))
+                                    {
+                                        <div class="position-relative mb-4">
+                                            <span class="position-absolute rounded-circle bg-success"
+                                                  style="width:12px;height:12px;left:-26px;top:6px;border:2px solid #fff;"></span>
+                                            <div class="text-muted small fw-bold mb-1">
+                                                <i class="fa-solid fa-calendar-alt me-1"></i>@record.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                            </div>
+                                            <div class="bg-light p-3 rounded-3 border-start border-success border-3">
+                                                <div class="row">
+                                                    <div class="col-sm-6 mb-2 mb-sm-0">
+                                                        <div class="text-muted small fw-semibold">CHẨN ĐOÁN</div>
+                                                        <div class="fw-bold text-dark">@record.Diagnosis</div>
+                                                    </div>
+                                                    <div class="col-sm-6">
+                                                        <div class="text-muted small fw-semibold">BÁC SĨ</div>
+                                                        <div class="text-dark">@record.DoctorName</div>
+                                                    </div>
+                                                </div>
+                                                @if (!string.IsNullOrEmpty(record.Symptoms))
+                                                {
+                                                    <div class="mt-2 pt-2 border-top border-2 border-white-50">
+                                                        <div class="text-muted small fw-semibold">TRIỆU CHỨNG</div>
+                                                        <div class="text-secondary small">@record.Symptoms</div>
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(record.Treatment))
+                                                {
+                                                    <div class="mt-2">
+                                                        <div class="text-muted small fw-semibold">ĐIỀU TRỊ</div>
+                                                        <div class="text-secondary small">@record.Treatment</div>
+                                                    </div>
+                                                }
+                                                @if (record.Prescriptions != null && record.Prescriptions.Any())
+                                                {
+                                                    <div class="mt-2">
+                                                        <div class="text-muted small fw-semibold">ĐƠN THUỐC</div>
+                                                        <div class="text-dark small">
+                                                            @string.Join(", ", record.Prescriptions.Select(p => $"{p.MedicineName} (x{p.Quantity})"))
+                                                        </div>
+                                                    </div>
+                                                }
+                                                <div class="text-end mt-2">
+                                                    <a asp-controller="MedicalRecords" asp-action="Details" asp-route-id="@record.MedicalRecordId" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                        <i class="fa-solid fa-folder-open me-1"></i> Chi tiết
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Lab Tests Tab -->
+                        <div class="tab-pane fade" id="labtests-pane" role="tabpanel" aria-labelledby="labtests-tab">
+                            @if (!labTests.Any())
+                            {
+                                <div class="text-center py-5 text-muted bg-light rounded-3">
+                                    <i class="fa-solid fa-flask fa-3x mb-3 text-secondary"></i>
+                                    <p class="mb-0 fw-bold">Chưa có xét nghiệm nào được chỉ định.</p>
+                                    <button type="button" class="btn btn-outline-primary btn-sm mt-3 rounded-pill" data-bs-toggle="modal" data-bs-target="#orderLabTestModal">
+                                        <i class="fa-solid fa-plus me-1"></i> Chỉ định xét nghiệm
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="table align-middle table-appointment">
+                                        <thead>
+                                            <tr>
+                                                <th>Dịch vụ</th>
+                                                <th>Ngày làm</th>
+                                                <th>Trạng thái</th>
+                                                <th class="text-end">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var lt in labTests)
+                                            {
+                                                <tr>
+                                                    <td class="fw-bold text-dark">@lt.ServiceName</td>
+                                                    <td class="small">@(lt.TestDate?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                                                    <td>
+                                                        @if (lt.Status == "Completed")
+                                                        {
+                                                            <span class="badge badge-completed rounded-pill px-2">Hoàn thành</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-pending rounded-pill px-2">Chờ xử lý</span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                                                data-bs-toggle="modal" data-bs-target="#labTestDetailModal"
+                                                                data-id="@lt.AppointmentLabTestId">
+                                                            <i class="fa-solid fa-eye me-1"></i> Chi tiết
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="text-end mt-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#orderLabTestModal">
+                                        <i class="fa-solid fa-plus me-1"></i> Thêm xét nghiệm
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lab Test Detail Modal -->
+<div class="modal fade" id="labTestDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white rounded-top-4">
+                <h5 class="modal-title"><i class="fa-solid fa-flask me-2"></i><span id="ltdServiceName"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="ltdBody">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="exam-info-label">NGÀY LÀM</div>
+                        <div class="fw-bold text-dark" id="ltdTestDate">—</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="exam-info-label">TRẠNG THÁI</div>
+                        <div id="ltdStatus">—</div>
+                    </div>
+                </div>
+
+                <div class="mt-3" id="ltdIndicatorsSection" style="display:none;">
+                    <div class="exam-info-label mb-2">CHỈ SỐ KẾT QUẢ</div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm mb-0 bg-white rounded-3 overflow-hidden">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Chỉ số</th>
+                                    <th>Kết quả</th>
+                                    <th>Đơn vị</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ltdIndicatorsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-3" id="ltdResultSection" style="display:none;">
+                    <div class="exam-info-label mb-1">KẾT LUẬN</div>
+                    <div class="bg-light p-3 rounded-3 border-start border-primary border-3 text-dark" id="ltdResult"></div>
+                </div>
+
+                <div class="mt-3" id="ltdNotesSection" style="display:none;">
+                    <div class="exam-info-label mb-1">GHI CHÚ</div>
+                    <div class="bg-light p-3 rounded-3 text-secondary small" id="ltdNotes"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var labTestData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    labTests.ToDictionary(
+        lt => lt.AppointmentLabTestId,
+        lt => new {
+            service = lt.ServiceName,
+            date = lt.TestDate?.ToString("dd/MM/yyyy HH:mm") ?? "—",
+            status = lt.Status,
+            indicators = (lt.Indicators ?? new List<LabTestIndicatorValueDto>())
+                        .Select(i => new { label = i.Label, value = i.Value ?? "", unit = i.Unit ?? "" }).ToList(),
+            result = lt.Result ?? "",
+            notes = lt.Notes ?? ""
+        }
+    )
+));
+
+document.getElementById('labTestDetailModal').addEventListener('shown.bs.modal', function (event) {
+    var btn = event.relatedTarget;
+    var id = parseInt(btn.getAttribute('data-id'));
+    var d = labTestData[id];
+    if (!d) return;
+
+    document.getElementById('ltdServiceName').textContent = d.service;
+    document.getElementById('ltdTestDate').textContent = d.date;
+
+    var statusEl = document.getElementById('ltdStatus');
+    statusEl.innerHTML = d.status === 'Completed'
+        ? '<span class="badge badge-completed rounded-pill px-2">Hoàn thành</span>'
+        : '<span class="badge badge-pending rounded-pill px-2">Chờ xử lý</span>';
+
+    var indSection = document.getElementById('ltdIndicatorsSection');
+    var indTable = document.getElementById('ltdIndicatorsTable');
+    if (d.indicators && d.indicators.length > 0) {
+        indSection.style.display = 'block';
+        indTable.innerHTML = '';
+        d.indicators.forEach(function(i) {
+            indTable.innerHTML += '<tr><td class="fw-semibold text-dark">' + i.label + '</td><td class="fw-bold">' + (i.value || '—') + '</td><td class="text-muted small">' + (i.unit || '—') + '</td></tr>';
+        });
+    } else {
+        indSection.style.display = 'none';
+    }
+
+    var resultSection = document.getElementById('ltdResultSection');
+    if (d.result && d.result.trim()) {
+        resultSection.style.display = 'block';
+        document.getElementById('ltdResult').textContent = d.result;
+    } else {
+        resultSection.style.display = 'none';
+    }
+
+    var notesSection = document.getElementById('ltdNotesSection');
+    if (d.notes && d.notes.trim()) {
+        notesSection.style.display = 'block';
+        document.getElementById('ltdNotes').textContent = d.notes;
+    } else {
+        notesSection.style.display = 'none';
+    }
+});
+</script>
+
+<!-- Order Lab Test Modal -->
+<div class="modal fade" id="orderLabTestModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-info text-white rounded-top-4">
+                <h5 class="modal-title"><i class="fa-solid fa-flask me-2"></i>Chỉ định xét nghiệm</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="OrderLabTest" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="appointmentId" value="@Model.AppointmentId" />
+                <div class="modal-body p-4">
+                    <div class="alert alert-info rounded-3 small">
+                        <i class="fa-solid fa-circle-info me-2"></i>Chỉ định xét nghiệm cho: <strong>@Model.PatientName</strong>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label appt-label">Chọn dịch vụ xét nghiệm</label>
+                        <select name="labTestServiceId" class="form-select rounded-3" required>
+                            <option value="" disabled selected>-- Chọn dịch vụ --</option>
+                            @foreach (var svc in activeServices)
+                            {
+                                <option value="@svc.LabTestServiceId">@svc.ServiceName (@svc.Price.ToString("N0") VND)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label appt-label">Ghi chú yêu cầu</label>
+                        <textarea name="notes" class="form-control rounded-3" rows="3" placeholder="Ghi chú cho kỹ thuật viên (nếu có)..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-info text-white rounded-pill px-4">
+                        <i class="fa-solid fa-flask me-1"></i> Xác nhận
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Follow-up Booking Modal -->
+<div class="modal fade" id="followupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white rounded-top-4">
+                <h5 class="modal-title"><i class="fa-solid fa-clock me-2"></i>Đặt lịch tái khám</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="ScheduleFollowup" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="patientId" value="@Model.PatientId" />
+                <input type="hidden" name="appointmentId" value="@Model.AppointmentId" />
+                <div class="modal-body p-4">
+                    <div class="alert alert-success rounded-3 small">
+                        <i class="fa-solid fa-circle-info me-2"></i>Đặt tái khám cho: <strong>@Model.PatientName</strong>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label appt-label">Ngày & giờ tái khám</label>
+                        <input type="datetime-local" name="appointmentDate" class="form-control rounded-3" required
+                               value="@DateTime.Today.AddDays(14).ToString("yyyy-MM-ddT09:00")" />
+                        <small class="text-muted">Gợi ý: Tái khám thường sau 14 ngày.</small>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label appt-label">Lý do / Ghi chú</label>
+                        <textarea name="reason" class="form-control rounded-3" rows="3" placeholder="Nhập hướng dẫn cụ thể..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4">
+                        <i class="fa-solid fa-calendar-check me-1"></i> Xác nhận
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

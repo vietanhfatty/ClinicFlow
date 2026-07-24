@@ -9,6 +9,7 @@
       "MyProject.Infrastructure/1.0.0": {
         "dependencies": {
           "Microsoft.EntityFrameworkCore": "9.0.12",
+          "Microsoft.EntityFrameworkCore.SqlServer": "9.0.12",
           "MyProject.Domain": "1.0.0"
         },
         "runtime": {
