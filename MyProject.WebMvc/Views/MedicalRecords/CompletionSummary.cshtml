@@ -1,0 +1,227 @@
+@model MyProject.Application.DTOs.MedicalRecordDto
+
+@{
+    ViewData["Title"] = "Review Medical Record";
+}
+
+<div class="container mt-4">
+    <!-- Success Banner -->
+    <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0" role="alert">
+        <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+                <i class="fa-solid fa-circle-check fa-2x text-success"></i>
+            </div>
+            <div>
+                <h5 class="alert-heading mb-1 fw-bold">Medical Record Created Successfully!</h5>
+                <p class="mb-0 small">The medical record for this appointment has been saved. Please review the details below.</p>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="row">
+        <!-- Medical Record Details -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold text-primary">
+                            <i class="fa-solid fa-file-medical me-2"></i>Medical Record
+                        </h5>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">
+                            <i class="fa-solid fa-check-circle me-1"></i>Completed
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Patient & Appointment Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="text-muted small text-uppercase fw-semibold">Patient</label>
+                            <p class="mb-1 fw-semibold">@Model.PatientName</p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small text-uppercase fw-semibold">Appointment Date</label>
+                            <p class="mb-1">@Model.AppointmentDate.ToString("dd/MM/yyyy")</p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small text-uppercase fw-semibold">Status</label>
+                            <p class="mb-1">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                                    @Model.AppointmentStatus
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <!-- Medical Details -->
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase fw-semibold">
+                            <i class="fa-solid fa-stethoscope me-1"></i>Symptoms
+                        </label>
+                        <div class="p-3 bg-light rounded-3">
+                            <p class="mb-0 text-dark">@(string.IsNullOrWhiteSpace(Model.Symptoms) ? "No symptoms recorded." : Model.Symptoms)</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase fw-semibold">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i>Diagnosis
+                        </label>
+                        <div class="p-3 bg-light rounded-3">
+                            <p class="mb-0 text-dark fw-semibold">@(string.IsNullOrWhiteSpace(Model.Diagnosis) ? "No diagnosis recorded." : Model.Diagnosis)</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase fw-semibold">
+                            <i class="fa-solid fa-prescription me-1"></i>Treatment
+                        </label>
+                        <div class="p-3 bg-light rounded-3">
+                            <p class="mb-0 text-dark">@(string.IsNullOrWhiteSpace(Model.Treatment) ? "No treatment recorded." : Model.Treatment)</p>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                    {
+                        <div class="mb-3">
+                            <label class="text-muted small text-uppercase fw-semibold">
+                                <i class="fa-solid fa-note-sticky me-1"></i>Notes
+                            </label>
+                            <div class="p-3 bg-light rounded-3">
+                                <p class="mb-0 text-dark">@Model.Notes</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Prescriptions -->
+            @if (Model.Prescriptions != null && Model.Prescriptions.Any())
+            {
+                <div class="card shadow-sm border-0 rounded-4 mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold text-info">
+                            <i class="fa-solid fa-pills me-2"></i>Prescriptions (@Model.Prescriptions.Count)
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Medicine</th>
+                                        <th>Dosage</th>
+                                        <th>Quantity</th>
+                                        <th class="pe-4">Instructions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var rx in Model.Prescriptions)
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-semibold">@rx.MedicineName</td>
+                                            <td><span class="badge bg-info-subtle text-info">@rx.Dosage</span></td>
+                                            <td>@rx.Quantity</td>
+                                            <td class="pe-4 text-muted small">@rx.Instruction</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Follow-up Booking Panel -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                <div class="card-body text-white p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fa-solid fa-calendar-plus me-2"></i>Book Follow-up Appointment
+                    </h5>
+                    <p class="opacity-75 small mb-4">Schedule the next appointment for this patient to continue treatment.</p>
+
+                    <form asp-action="Create" asp-controller="Appointments" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="patientId" value="@ViewBag.Appointment?.PatientId" />
+                        <input type="hidden" name="doctorId" value="@ViewBag.Appointment?.DoctorId" />
+                        <input type="hidden" name="status" value="Pending" />
+                        <input type="hidden" name="isFollowUp" value="true" />
+                        <input type="hidden" name="returnUrl" value="completion" />
+
+                        <div class="mb-3">
+                            <label class="small opacity-75 fw-semibold mb-1">Patient</label>
+                            <div class="bg-white bg-opacity-10 rounded-3 px-3 py-2">
+                                @ViewBag.Appointment?.PatientName
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small opacity-75 fw-semibold mb-1">Doctor</label>
+                            <select name="doctorId" class="form-select rounded-3 border-0" style="background:#ffffff; color:#1e293b;" required>
+                                <option value="">Select Doctor</option>
+                                @foreach (var doc in ViewBag.Doctors)
+                                {
+                                    <option value="@doc.DoctorId" selected="@(doc.DoctorId == ViewBag.Appointment?.DoctorId)">
+                                        Dr. @doc.FullName - @doc.Specialization
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <label class="small opacity-75 fw-semibold mb-1">Date</label>
+                                <input type="date" name="appointmentDate" class="form-control rounded-3 border-0" style="background:#ffffff; color:#1e293b;"
+                                       value="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" required />
+                            </div>
+                            <div class="col-6">
+                                <label class="small opacity-75 fw-semibold mb-1">Time</label>
+                                <input type="time" name="appointmentTime" class="form-control rounded-3 border-0" style="background:#ffffff; color:#1e293b;"
+                                       value="09:00" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="small opacity-75 fw-semibold mb-1">Reason</label>
+                            <textarea name="reason" class="form-control rounded-3 border-0" style="background:#ffffff; color:#1e293b;" rows="2"
+                                      placeholder="e.g., Follow-up for treatment review">Follow-up: @Model.Diagnosis</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-light btn-lg w-100 rounded-3 fw-bold">
+                            <i class="fa-solid fa-calendar-check me-2"></i>Book Appointment
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow-sm border-0 rounded-4 mt-4">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3 text-muted">
+                        <i class="fa-solid fa-bolt me-1"></i>Quick Actions
+                    </h6>
+                    <div class="d-grid gap-2">
+                        <a asp-action="Details" asp-route-id="@Model.MedicalRecordId" class="btn btn-outline-primary rounded-3">
+                            <i class="fa-solid fa-eye me-2"></i>View Full Record
+                        </a>
+                        <a asp-action="Queue" asp-controller="Appointments" class="btn btn-outline-secondary rounded-3">
+                            <i class="fa-solid fa-list me-2"></i>Back to Queue
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-success-subtle { background-color: #d1e7dd; }
+    .bg-info-subtle { background-color: #cff4fc; }
+    .text-success { color: #198754 !important; }
+    .text-info { color: #0dcaf0 !important; }
+</style>

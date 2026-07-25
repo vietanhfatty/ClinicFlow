@@ -35,10 +35,39 @@ public class AuthApiService
     {
         var client = GetClient();
         var response = await client.PostAsJsonAsync("account/login", request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            var message = "Invalid username or password.";
+
+            if (!string.IsNullOrEmpty(body) && body.StartsWith("{"))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(body);
+                    if (doc.RootElement.TryGetProperty("Message", out var msg))
+                        message = msg.GetString() ?? message;
+                    else if (doc.RootElement.TryGetProperty("message", out var msg2))
+                        message = msg2.GetString() ?? message;
+                }
+                catch { }
+            }
+
+            return new LoginResponse(false, message, null, null, null, null);
+        }
+
         var json = await response.Content.ReadAsStringAsync();
 
-        var result = JsonSerializer.Deserialize<LoginResponse>(json, _jsonOptions);
-        if (result != null) return result;
+        try
+        {
+            var result = JsonSerializer.Deserialize<LoginResponse>(json, _jsonOptions);
+            if (result != null) return result;
+        }
+        catch (JsonException)
+        {
+            return new LoginResponse(false, "Invalid response from authentication service.", null, null, null, null);
+        }
 
         return new LoginResponse(false, "Unable to reach authentication service.", null, null, null, null);
     }

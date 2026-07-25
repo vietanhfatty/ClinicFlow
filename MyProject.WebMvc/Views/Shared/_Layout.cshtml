@@ -78,6 +78,11 @@
                             </a>
                         </li>
                         <li class="nav-menu-item">
+                            <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AppointmentBills" ? "active" : "")" asp-controller="AppointmentBills" asp-action="Index">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> Bills
+                            </a>
+                        </li>
+                        <li class="nav-menu-item">
                             <a class="nav-menu-link @(currentPage == "/Statistics/DoctorWorkload" ? "active" : "")" asp-page="/Statistics/DoctorWorkload">
                                 <i class="fa-solid fa-briefcase-medical"></i> Doctor Workload
                             </a>
@@ -155,8 +160,13 @@
                             </a>
                         </li>
                         <li class="nav-menu-item">
-                            <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PatientPortal" && (ViewContext.RouteData.Values["Action"]?.ToString() == "PaymentHistory" || ViewContext.RouteData.Values["Action"]?.ToString() == "RequestPayment") ? "active" : "")" asp-controller="PatientPortal" asp-action="PaymentHistory">
-                                <i class="fa-solid fa-credit-card"></i> Payments
+                            <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PatientPortal" && ViewContext.RouteData.Values["Action"]?.ToString() == "MyBills" ? "active" : "")" asp-controller="PatientPortal" asp-action="MyBills">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> My Bills
+                            </a>
+                        </li>
+                        <li class="nav-menu-item">
+                            <a class="nav-menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PatientPortal" && ViewContext.RouteData.Values["Action"]?.ToString() == "MyBills" ? "active" : "")" asp-controller="PatientPortal" asp-action="MyBills">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> My Bills
                             </a>
                         </li>
                     }

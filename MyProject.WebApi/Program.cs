@@ -32,6 +32,7 @@ builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<ILabTestServiceRepository, LabTestServiceRepository>();
 builder.Services.AddScoped<IAppointmentLabTestRepository, AppointmentLabTestRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IAppointmentBillRepository, AppointmentBillRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 // Register HttpClient factory (used by LabTestApiService and other API client services)
@@ -53,6 +54,7 @@ builder.Services.AddScoped<StatisticsService>();
 builder.Services.AddScoped<MyProject.Application.Services.LabTestService>();
 builder.Services.AddScoped<LabTestApiService>();
 builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<AppointmentBillService>();
 builder.Services.AddScoped<PatientMedicalRecordService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddSingleton<JwtTokenService>();

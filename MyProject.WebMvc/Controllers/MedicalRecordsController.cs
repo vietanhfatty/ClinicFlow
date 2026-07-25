@@ -16,15 +16,18 @@ public class MedicalRecordsController : Controller
     private readonly MedicalRecordApiService _medicalRecordService;
     private readonly PatientApiService _patientApiService;
     private readonly AppointmentApiService _appointmentApiService;
+    private readonly DoctorApiService _doctorService;
 
     public MedicalRecordsController(
         MedicalRecordApiService medicalRecordService,
         PatientApiService patientApiService,
-        AppointmentApiService appointmentApiService)
+        AppointmentApiService appointmentApiService,
+        DoctorApiService doctorService)
     {
         _medicalRecordService = medicalRecordService;
         _patientApiService = patientApiService;
         _appointmentApiService = appointmentApiService;
+        _doctorService = doctorService;
     }
 
     [Authorize(Roles = "Admin,Doctor")]
@@ -75,21 +78,47 @@ public class MedicalRecordsController : Controller
 
     public async Task<IActionResult> Details(int id)
     {
-        var record = await _medicalRecordService.GetByIdAsync(id);
-        if (record == null) return NotFound();
-
-        if (User.IsInRole("Patient"))
+        try
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var patients = await _patientApiService.GetAllAsync();
-            var patient = patients.FirstOrDefault(p => p.UserId == userId);
-            if (patient == null || record.PatientName != patient.FullName)
-            {
-                return Forbid();
-            }
-        }
+            var record = await _medicalRecordService.GetByIdAsync(id);
+            if (record == null) return NotFound();
 
-        return View(record);
+            if (User.IsInRole("Patient"))
+            {
+                // Get PatientId from claims
+                var patientIdClaim = User.FindFirst("PatientId")?.Value;
+                if (string.IsNullOrEmpty(patientIdClaim) || !int.TryParse(patientIdClaim, out int patientId))
+                {
+                    // Fallback: try to find patient by UserId
+                    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                    var patients = await _patientApiService.GetAllAsync();
+                    var patient = patients.FirstOrDefault(p => p.UserId == userId);
+                    if (patient == null || record.PatientName != patient.FullName)
+                    {
+                        TempData["ErrorMessage"] = "You don't have permission to view this medical record.";
+                        return RedirectToAction("MyMedicalRecords", "PatientPortal");
+                    }
+                }
+                else
+                {
+                    // Verify by PatientId
+                    var patients = await _patientApiService.GetAllAsync();
+                    var patient = patients.FirstOrDefault(p => p.PatientId == patientId);
+                    if (patient == null || record.PatientName != patient.FullName)
+                    {
+                        TempData["ErrorMessage"] = "You don't have permission to view this medical record.";
+                        return RedirectToAction("MyMedicalRecords", "PatientPortal");
+                    }
+                }
+            }
+
+            return View(record);
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = "Error loading medical record: " + ex.Message;
+            return RedirectToAction("MyMedicalRecords", "PatientPortal");
+        }
     }
 
     [Authorize(Roles = "Doctor")]
@@ -136,7 +165,7 @@ public class MedicalRecordsController : Controller
             }
 
             TempData["SuccessMessage"] = "Tạo bệnh án thành công!";
-            return RedirectToAction("Queue", "Appointments");
+            return RedirectToAction("CompletionSummary", new { id = record.MedicalRecordId });
         }
         catch (Exception ex)
         {
@@ -145,5 +174,19 @@ public class MedicalRecordsController : Controller
             ViewBag.Appointment = appt;
             return View(request);
         }
+    }
+
+    [Authorize(Roles = "Doctor")]
+    public async Task<IActionResult> CompletionSummary(int id)
+    {
+        var record = await _medicalRecordService.GetByIdAsync(id);
+        if (record == null) return NotFound();
+
+        var appointment = await _appointmentApiService.GetByIdAsync(record.AppointmentId);
+        var doctors = await _doctorService.GetAllAsync();
+        ViewBag.Appointment = appointment;
+        ViewBag.Doctors = doctors;
+
+        return View(record);
     }
 }

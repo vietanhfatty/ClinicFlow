@@ -47,7 +47,7 @@ public class PatientMedicalRecordService
 
         foreach (var appointment in patientAppointments)
         {
-            var medicalRecord = await _medicalRecordRepo.GetByIdAsync(appointment.AppointmentId);
+            var medicalRecord = await _medicalRecordRepo.GetByAppointmentIdAsync(appointment.AppointmentId);
             if (medicalRecord != null)
             {
                 records.Add(MapMedicalRecordToDto(medicalRecord, appointment));

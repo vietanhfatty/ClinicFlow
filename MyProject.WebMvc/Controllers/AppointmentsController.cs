@@ -249,7 +249,7 @@ public class AppointmentsController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize(Roles = "Admin,Staff,Doctor")]
     public async Task<IActionResult> Create(int? patientId)
     {
         await PopulateDropdownsViewBag();
@@ -265,7 +265,7 @@ public class AppointmentsController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize(Roles = "Admin,Staff,Doctor")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateAppointmentRequest request)
     {
@@ -284,7 +284,12 @@ public class AppointmentsController : Controller
                 staffId = sId;
             }
 
-            if (!staffId.HasValue && User.Identity?.IsAuthenticated == true)
+            // Allow Doctor to create appointments without StaffId
+            if (!staffId.HasValue && User.Identity?.IsAuthenticated == true && User.IsInRole("Doctor"))
+            {
+                // Doctor can create without staff
+            }
+            else if (!staffId.HasValue && User.Identity?.IsAuthenticated == true)
             {
                 try
                 {
@@ -310,6 +315,9 @@ public class AppointmentsController : Controller
             var requestWithStaff = request with { StaffId = staffId };
             await _appointmentService.CreateAsync(requestWithStaff);
             TempData["SuccessMessage"] = "Appointment booked successfully.";
+
+            if (Request.Form["returnUrl"] == "completion")
+                return RedirectToAction(nameof(Queue));
         }
         catch (KeyNotFoundException ex)
         {

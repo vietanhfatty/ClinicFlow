@@ -68,7 +68,7 @@
                                         </button>
                                     }
                                 </td>
-                                <td class="fw-bold text-success">@payment.Amount.ToString("C")</td>
+                                <td class="fw-bold text-success">@payment.Amount.ToString("N0") VND</td>
                                 <td class="small">@payment.RequestDate.ToString("yyyy-MM-dd HH:mm")</td>
                                 <td class="small">@(payment.PaidDate.HasValue ? payment.PaidDate.Value.ToString("yyyy-MM-dd HH:mm") : "-")</td>
                                 <td class="pe-4">
@@ -106,7 +106,7 @@
                                                     {
                                                         <tr class="border-bottom border-light">
                                                             <td>@lt.ServiceName</td>
-                                                            <td class="text-end">@lt.Price.ToString("C")</td>
+                                                            <td class="text-end">@lt.Price.ToString("N0") VND</td>
                                                             <td class="text-center">@(lt.TestDate?.ToString("yyyy-MM-dd") ?? "N/A")</td>
                                                             <td class="text-center">
                                                                 <span class="badge bg-success-subtle text-success rounded-pill px-2">@lt.Status</span>
@@ -115,7 +115,7 @@
                                                     }
                                                     <tr class="fw-bold text-dark">
                                                         <td>Total</td>
-                                                        <td class="text-end">@payment.LabTests.Sum(l => l.Price).ToString("C")</td>
+                                                        <td class="text-end">@payment.LabTests.Sum(l => l.Price).ToString("N0") VND</td>
                                                         <td></td>
                                                         <td></td>
                                                     </tr>

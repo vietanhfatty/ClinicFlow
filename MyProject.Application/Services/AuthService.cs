@@ -90,24 +90,16 @@ public class AuthService
         else if (!roleName.Equals("Patient", StringComparison.OrdinalIgnoreCase) && !roleName.Equals("Doctor", StringComparison.OrdinalIgnoreCase))
         {
             var staffList = await _staffRepo.GetAllAsync();
-            var uname = user.Username.Trim();
+            var uname = user.Username.Trim().ToLower();
 
-            var staff = staffList.FirstOrDefault(s => 
-                string.Equals(s.Email, uname, StringComparison.OrdinalIgnoreCase) || 
-                string.Equals(s.Phone, uname, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrEmpty(s.Email) && s.Email.Split('@')[0].Equals(uname, StringComparison.OrdinalIgnoreCase)) ||
-                (uname.StartsWith("staff", StringComparison.OrdinalIgnoreCase) && 
-                 int.TryParse(uname.Substring(5), out int num) && 
-                 num == s.StaffId) ||
-                (uname.Contains('.') && s.FullName.EndsWith(uname.Split('.')[^1], StringComparison.OrdinalIgnoreCase)) ||
-                (uname.Contains('_') && s.FullName.EndsWith(uname.Split('_')[^1], StringComparison.OrdinalIgnoreCase)) ||
-                (!string.IsNullOrEmpty(uname) && s.FullName.Replace(" ", "").EndsWith(uname.Replace("staff", "").Replace(".", "").Replace("_", ""), StringComparison.OrdinalIgnoreCase))
-            );
-
-            if (staff == null && staffList.Any())
-            {
-                staff = staffList.FirstOrDefault();
-            }
+            var staff = staffList.FirstOrDefault(s => {
+                if (!string.IsNullOrEmpty(s.Email) && s.Email.ToLower() == uname) return true;
+                if (!string.IsNullOrEmpty(s.Phone) && s.Phone.ToLower() == uname) return true;
+                if (s.FullName.ToLower() == uname) return true;
+                if (uname.StartsWith("staff") && uname.Length > 5 && int.TryParse(uname.Substring(5), out int num) && num == s.StaffId) return true;
+                if (uname.StartsWith("staff.") && s.FullName.ToLower().Contains(uname.Replace("staff.", ""))) return true;
+                return false;
+            });
 
             if (staff != null)
             {

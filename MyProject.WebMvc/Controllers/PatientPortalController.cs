@@ -181,67 +181,57 @@ public class PatientPortalController : Controller
         return View(prescription);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> MedicalRecordDetails(int id)
+    {
+        var patient = await GetCurrentPatientAsync();
+        if (patient == null) return RedirectToAction("Logout", "Account");
+
+        var record = await _patientPortalService.GetMyMedicalRecordAsync(id);
+        if (record == null)
+        {
+            TempData["ErrorMessage"] = "Medical record not found or you don't have permission to view it.";
+            return RedirectToAction(nameof(MyMedicalRecords));
+        }
+
+        return View(record);
+    }
+
     public async Task<IActionResult> PaymentHistory()
+    {
+        return RedirectToAction(nameof(MyBills));
+    }
+
+    public async Task<IActionResult> MyBills()
     {
         try
         {
             var patient = await GetCurrentPatientAsync();
             if (patient == null) return RedirectToAction("Logout", "Account");
 
-            var payments = await _patientPortalService.GetMyPaymentsAsync();
-            return View(payments);
+            var bills = await _patientPortalService.GetMyBillsAsync();
+            return View(bills);
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "Unable to load payment history. Please try again.";
-            return View(new List<PaymentDto>());
+            TempData["ErrorMessage"] = "Unable to load bills. Please try again.";
+            return View(new List<AppointmentBillDto>());
         }
     }
 
     [HttpGet]
-    public async Task<IActionResult> RequestPayment()
+    public async Task<IActionResult> BillDetails(int id)
     {
         var patient = await GetCurrentPatientAsync();
         if (patient == null) return RedirectToAction("Logout", "Account");
 
-        var appointments = await _patientPortalService.GetMyAppointmentsAsync();
-        var completedAppointments = appointments
-            .Where(a => a.Status == "Completed")
-            .ToList();
-
-        ViewBag.CompletedAppointments = completedAppointments;
-        return View();
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RequestPayment(int AppointmentId, string? Reason)
-    {
-        var patient = await GetCurrentPatientAsync();
-        if (patient == null) return RedirectToAction("Logout", "Account");
-
-        if (AppointmentId <= 0)
+        var bill = await _patientPortalService.GetMyBillAsync(id);
+        if (bill == null)
         {
-            TempData["ErrorMessage"] = "Please select an appointment.";
-            return RedirectToAction(nameof(RequestPayment));
+            TempData["ErrorMessage"] = "Bill not found or you don't have permission to view it.";
+            return RedirectToAction(nameof(MyBills));
         }
 
-        try
-        {
-            var request = new CreatePaymentRequest(
-                PatientId: patient.PatientId,
-                AppointmentId: AppointmentId,
-                Reason: Reason
-            );
-
-            await _patientPortalService.RequestPaymentAsync(request);
-            TempData["SuccessMessage"] = "Payment request submitted successfully!";
-            return RedirectToAction(nameof(PaymentHistory));
-        }
-        catch (Exception ex)
-        {
-            TempData["ErrorMessage"] = $"Error submitting payment request: {ex.Message}";
-            return RedirectToAction(nameof(RequestPayment));
-        }
+        return View(bill);
     }
 }

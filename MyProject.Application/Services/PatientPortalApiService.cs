@@ -284,6 +284,76 @@ public class PatientPortalApiService
 
     #endregion
 
+    #region Appointment Bills
+
+    /// <summary>
+    /// Gets all bills for the current patient
+    /// </summary>
+    public async Task<List<AppointmentBillDto>> GetMyBillsAsync()
+    {
+        var client = GetClient();
+        var response = await client.GetAsync("patient-portal/my-bills");
+
+        if (!response.IsSuccessStatusCode)
+            return new List<AppointmentBillDto>();
+
+        var json = await response.Content.ReadAsStringAsync();
+        var bills = JsonSerializer.Deserialize<List<AppointmentBillDto>>(json, _jsonOptions)
+            ?? new List<AppointmentBillDto>();
+        return bills;
+    }
+
+    /// <summary>
+    /// Gets pending bills for the current patient
+    /// </summary>
+    public async Task<List<AppointmentBillDto>> GetMyPendingBillsAsync()
+    {
+        var client = GetClient();
+        var response = await client.GetAsync("patient-portal/my-bills/pending");
+
+        if (!response.IsSuccessStatusCode)
+            return new List<AppointmentBillDto>();
+
+        var json = await response.Content.ReadAsStringAsync();
+        var bills = JsonSerializer.Deserialize<List<AppointmentBillDto>>(json, _jsonOptions)
+            ?? new List<AppointmentBillDto>();
+        return bills;
+    }
+
+    /// <summary>
+    /// Gets completed bills for the current patient
+    /// </summary>
+    public async Task<List<AppointmentBillDto>> GetMyCompletedBillsAsync()
+    {
+        var client = GetClient();
+        var response = await client.GetAsync("patient-portal/my-bills/completed");
+
+        if (!response.IsSuccessStatusCode)
+            return new List<AppointmentBillDto>();
+
+        var json = await response.Content.ReadAsStringAsync();
+        var bills = JsonSerializer.Deserialize<List<AppointmentBillDto>>(json, _jsonOptions)
+            ?? new List<AppointmentBillDto>();
+        return bills;
+    }
+
+    /// <summary>
+    /// Gets a specific bill
+    /// </summary>
+    public async Task<AppointmentBillDto?> GetMyBillAsync(int billId)
+    {
+        var client = GetClient();
+        var response = await client.GetAsync($"patient-portal/my-bills/{billId}");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<AppointmentBillDto>(json, _jsonOptions);
+    }
+
+    #endregion
+
     #region Dashboard
 
     /// <summary>

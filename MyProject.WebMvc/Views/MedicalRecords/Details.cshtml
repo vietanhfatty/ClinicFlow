@@ -142,7 +142,7 @@
                                 {
                                     <tr>
                                         <td class="fw-bold text-dark">@lt.ServiceName</td>
-                                        <td class="text-end text-success fw-bold">@lt.Price.ToString("C")</td>
+                                        <td class="text-end text-success fw-bold">@lt.Price.ToString("N0") VND</td>
                                         <td class="small">@(lt.TestDate?.ToString("yyyy-MM-dd") ?? "N/A")</td>
                                         <td>
                                             @if (lt.Status == "Completed")
@@ -165,7 +165,7 @@
                             <tfoot>
                                 <tr class="fw-bold border-top">
                                     <td>Total</td>
-                                    <td class="text-end text-success">@Model.LabTests.Sum(l => l.Price).ToString("C")</td>
+                                    <td class="text-end text-success">@Model.LabTests.Sum(l => l.Price).ToString("N0") VND</td>
                                     <td colspan="3"></td>
                                 </tr>
                             </tfoot>

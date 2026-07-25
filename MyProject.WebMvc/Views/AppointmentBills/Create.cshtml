@@ -1,0 +1,314 @@
+@model MyProject.Application.DTOs.CreateAppointmentBillRequest
+
+@{
+    ViewData["Title"] = "Tạo Bill";
+    var patients = ViewBag.Patients as IEnumerable<MyProject.Domain.Entities.Patient> ?? Enumerable.Empty<MyProject.Domain.Entities.Patient>();
+    var unbilledAppointments = ViewBag.UnbilledAppointments as IEnumerable<MyProject.Domain.Entities.Appointment> ?? Enumerable.Empty<MyProject.Domain.Entities.Appointment>();
+    var labTests = ViewBag.LabTests as IEnumerable<MyProject.Application.DTOs.AppointmentLabTestDto> ?? Enumerable.Empty<MyProject.Application.DTOs.AppointmentLabTestDto>();
+    var allLabTests = ViewBag.AllLabTests as IEnumerable<MyProject.Application.DTOs.AppointmentLabTestDto> ?? Enumerable.Empty<MyProject.Application.DTOs.AppointmentLabTestDto>();
+    var labTestFee = ViewBag.LabTestFee as decimal? ?? 0;
+    var selectedAppointmentId = ViewBag.AppointmentId as int?;
+    var selectedPatientId = ViewBag.PatientId as int?;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="m-0 fw-bold text-success">
+                        <i class="fa-solid fa-file-invoice-dollar me-2"></i>Tạo Bill cho lịch hẹn
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Create" method="post" id="billForm">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chọn bệnh nhân <span class="text-danger">*</span></label>
+                            <select class="form-select rounded-3" id="patientSelect" required>
+                                <option value="">-- Chọn bệnh nhân --</option>
+                                @foreach (var patient in patients)
+                                {
+                                    <option value="@patient.PatientId" data-name="@patient.FullName" selected="@(selectedPatientId == patient.PatientId)">
+                                        @patient.FullName @(string.IsNullOrEmpty(patient.Phone) ? "" : $"({patient.Phone})")
+                                    </option>
+                                }
+                            </select>
+                            <span class="text-danger small" id="patientError"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chọn lịch hẹn <span class="text-danger">*</span></label>
+                            <select asp-for="AppointmentId" class="form-select rounded-3" id="appointmentSelect" required disabled>
+                                <option value="">-- Vui lòng chọn bệnh nhân trước --</option>
+                            </select>
+                            <span class="text-danger small" id="appointmentError"></span>
+                            <span asp-validation-for="AppointmentId" class="text-danger small"></span>
+                        </div>
+
+                        <input type="hidden" asp-for="PatientId" id="hiddenPatientId" />
+
+                        <!-- Lab Tests Preview -->
+                        <div id="labTestsSection" style="display: none;">
+                            <div class="alert alert-light border rounded-3 mb-3">
+                                <h6 class="fw-bold text-muted mb-2">
+                                    <i class="fa-solid fa-flask me-2"></i>Xét nghiệm đã chỉ định
+                                </h6>
+                                <table class="table table-sm mb-0" id="labTestsTable">
+                                    <thead>
+                                        <tr class="text-muted small">
+                                            <th>Dịch vụ</th>
+                                            <th class="text-end">Giá</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="fw-bold border-top">
+                                            <td>Tổng phí xét nghiệm</td>
+                                            <td class="text-end text-success" id="labTestFeeTotal">0 VND</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Phí khám</label>
+                                <div class="input-group">
+                                    <input asp-for="ExaminationFee" class="form-control rounded-3" type="number" step="1000" min="0" value="0" />
+                                    <span class="input-group-text">VND</span>
+                                </div>
+                                <span asp-validation-for="ExaminationFee" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Phí xét nghiệm (tự động)</label>
+                                <div class="input-group">
+                                    <input class="form-control rounded-3" type="text" id="labTestFeeDisplay" value="0" readonly />
+                                    <span class="input-group-text">VND</span>
+                                </div>
+                                <small class="text-muted">Được tính từ các xét nghiệm đã chỉ định</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Ghi chú</label>
+                            <textarea asp-for="Notes" class="form-control rounded-3" rows="3" placeholder="Thêm ghi chú nếu cần..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                        </div>
+
+                        <input type="hidden" name="LabTestFee" id="labTestFeeHidden" value="0" />
+
+                        <div class="alert alert-success rounded-3 mb-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">TỔNG TIỀN:</span>
+                                <span class="fs-5 fw-bold text-success" id="totalAmount">0 VND</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-start gap-2">
+                            <button type="submit" class="btn btn-success rounded-pill px-4">
+                                <i class="fa-solid fa-check-circle me-1"></i> Tạo Bill
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Store all unbilled appointments grouped by patient ID
+        const appointmentsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            unbilledAppointments.Select(a => new {
+                appointmentId = a.AppointmentId,
+                patientId = a.PatientId,
+                date = a.AppointmentDate.ToString("yyyy-MM-dd"),
+                time = a.AppointmentTime.ToString(@"hh\:mm"),
+                patientName = a.Patient?.FullName ?? "Unknown",
+                doctorName = a.Doctor?.FullName ?? "Unknown",
+                status = a.Status
+            }),
+            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+        ));
+
+        const labTestsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            allLabTests.Select(lt => new {
+                appointmentId = lt.AppointmentId,
+                serviceName = lt.ServiceName,
+                price = lt.Price
+            }),
+            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+        ));
+
+        let selectedPatientId = @(selectedPatientId?.ToString() ?? "null");
+        let selectedAppointmentId = @(selectedAppointmentId?.ToString() ?? "null");
+
+        function populateAppointments(patientId) {
+            const appointmentSelect = document.getElementById('appointmentSelect');
+            appointmentSelect.innerHTML = '<option value="">-- Đang tải lịch hẹn --</option>';
+
+            const filteredAppointments = appointmentsData.filter(a => a.patientId === patientId);
+
+            if (filteredAppointments.length === 0) {
+                appointmentSelect.innerHTML = '<option value="">-- Không có lịch hẹn chưa thanh toán --</option>';
+                appointmentSelect.disabled = true;
+                clearLabTests();
+                return;
+            }
+
+            appointmentSelect.innerHTML = '<option value="">-- Chọn lịch hẹn --</option>';
+            filteredAppointments.forEach(apt => {
+                const option = document.createElement('option');
+                option.value = apt.appointmentId;
+                option.textContent = `${apt.date} ${apt.time} - ${apt.doctorName} (${apt.status})`;
+                if (selectedAppointmentId && apt.appointmentId === selectedAppointmentId) {
+                    option.selected = true;
+                }
+                appointmentSelect.appendChild(option);
+            });
+            appointmentSelect.disabled = false;
+
+            // Auto-select if there's a pre-selected appointment
+            if (selectedAppointmentId) {
+                appointmentSelect.value = selectedAppointmentId;
+                loadLabTestsForAppointment(selectedAppointmentId);
+            }
+        }
+
+        function loadLabTestsForAppointment(appointmentId) {
+            const labTestsSection = document.getElementById('labTestsSection');
+            const labTestsTableBody = document.querySelector('#labTestsTable tbody');
+            const labTestFeeTotal = document.getElementById('labTestFeeTotal');
+            const labTestFeeDisplay = document.getElementById('labTestFeeDisplay');
+            const labTestFeeHidden = document.getElementById('labTestFeeHidden');
+
+            const filteredLabTests = labTestsData.filter(lt => lt.appointmentId === appointmentId);
+
+            if (filteredLabTests.length === 0) {
+                labTestsSection.style.display = 'none';
+                labTestFeeDisplay.value = '0';
+                labTestFeeHidden.value = '0';
+                labTestFeeTotal.textContent = '0 VND';
+                updateTotal();
+                return;
+            }
+
+            labTestsSection.style.display = 'block';
+            labTestsTableBody.innerHTML = '';
+
+            let total = 0;
+            filteredLabTests.forEach(lt => {
+                total += lt.price;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${lt.serviceName}</td>
+                    <td class="text-end">${lt.price.toLocaleString('vi-VN')} VND</td>
+                `;
+                labTestsTableBody.appendChild(row);
+            });
+
+            labTestFeeTotal.textContent = total.toLocaleString('vi-VN') + ' VND';
+            labTestFeeDisplay.value = total.toLocaleString('vi-VN');
+            labTestFeeHidden.value = total;
+            updateTotal();
+        }
+
+        function clearLabTests() {
+            document.getElementById('labTestsSection').style.display = 'none';
+            document.getElementById('labTestFeeTotal').textContent = '0 VND';
+            document.getElementById('labTestFeeDisplay').value = '0';
+            document.getElementById('labTestFeeHidden').value = '0';
+            updateTotal();
+        }
+
+        function updateTotal() {
+            const examFee = parseFloat(document.getElementById('ExaminationFee').value) || 0;
+            const labFee = parseFloat(document.getElementById('labTestFeeHidden').value) || 0;
+            const total = examFee + labFee;
+            document.getElementById('totalAmount').textContent = total.toLocaleString('vi-VN') + ' VND';
+        }
+
+        // Event listeners
+        document.getElementById('patientSelect').addEventListener('change', function() {
+            const patientId = parseInt(this.value);
+            selectedPatientId = patientId;
+            selectedAppointmentId = null;
+            document.getElementById('hiddenPatientId').value = patientId || '';
+            document.getElementById('appointmentSelect').value = '';
+            clearLabTests();
+
+            if (patientId) {
+                populateAppointments(patientId);
+            } else {
+                const appointmentSelect = document.getElementById('appointmentSelect');
+                appointmentSelect.innerHTML = '<option value="">-- Vui lòng chọn bệnh nhân trước --</option>';
+                appointmentSelect.disabled = true;
+            }
+        });
+
+        document.getElementById('appointmentSelect').addEventListener('change', function() {
+            const appointmentId = parseInt(this.value);
+            selectedAppointmentId = appointmentId;
+            if (appointmentId) {
+                loadLabTestsForAppointment(appointmentId);
+            } else {
+                clearLabTests();
+            }
+        });
+
+        document.getElementById('ExaminationFee').addEventListener('input', updateTotal);
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set hidden patient ID if pre-selected
+            if (selectedPatientId) {
+                document.getElementById('hiddenPatientId').value = selectedPatientId;
+                populateAppointments(selectedPatientId);
+            }
+
+            // Initialize total
+            updateTotal();
+        });
+
+        // Form validation
+        document.getElementById('billForm').addEventListener('submit', function(e) {
+            const patientId = document.getElementById('hiddenPatientId').value;
+            const appointmentId = document.getElementById('appointmentSelect').value;
+
+            if (!patientId) {
+                e.preventDefault();
+                document.getElementById('patientError').textContent = 'Vui lòng chọn bệnh nhân';
+                return false;
+            }
+            document.getElementById('patientError').textContent = '';
+
+            if (!appointmentId) {
+                e.preventDefault();
+                document.getElementById('appointmentError').textContent = 'Vui lòng chọn lịch hẹn';
+                return false;
+            }
+            document.getElementById('appointmentError').textContent = '';
+
+            // Set PatientId from hidden field
+            document.getElementById('PatientId').value = patientId;
+            return true;
+        });
+    </script>
+}

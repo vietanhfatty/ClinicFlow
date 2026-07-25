@@ -44,4 +44,6 @@ public partial class Appointment
     public virtual MedicalRecord? MedicalRecord { get; set; }
 
     public virtual ICollection<AppointmentLabTest> AppointmentLabTests { get; set; } = new List<AppointmentLabTest>();
+
+    public virtual ICollection<AppointmentBill> AppointmentBills { get; set; } = new List<AppointmentBill>();
 }

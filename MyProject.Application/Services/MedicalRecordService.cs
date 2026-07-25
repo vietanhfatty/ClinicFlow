@@ -45,6 +45,12 @@ public class MedicalRecordService
         return list.Select(MapToDto);
     }
 
+    public async Task<MedicalRecordDto?> GetByIdAndPatientIdAsync(int medicalRecordId, int patientId)
+    {
+        var record = await _medicalRecordRepo.GetByIdAndPatientIdAsync(medicalRecordId, patientId);
+        return record == null ? null : MapToDto(record);
+    }
+
     public async Task<MedicalRecordDto> CreateAsync(CreateMedicalRecordRequest req)
     {
         var record = new MedicalRecord

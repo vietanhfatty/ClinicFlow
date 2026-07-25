@@ -30,6 +30,7 @@ builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
 builder.Services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IAppointmentBillRepository, AppointmentBillRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IAppointmentLabTestRepository, AppointmentLabTestRepository>();
 
@@ -42,6 +43,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<MedicalRecordService>();
 builder.Services.AddScoped<StaffService>();
 builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<AppointmentBillService>();
 builder.Services.AddScoped<PatientMedicalRecordService>();
 builder.Services.AddScoped<NotificationService>();
 

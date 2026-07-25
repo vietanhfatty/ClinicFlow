@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Application.DTOs;
 using MyProject.Application.Services;
+using MyProject.Domain.IRepositories;
 
 namespace MyProject.WebApi.Controllers;
 
@@ -17,32 +18,64 @@ public class PatientPortalController : ControllerBase
 {
     private readonly AppointmentService _appointmentService;
     private readonly PaymentService _paymentService;
+    private readonly AppointmentBillService _billService;
     private readonly PatientMedicalRecordService _medicalRecordService;
     private readonly AuthService _authService;
+    private readonly IPatientRepository _patientRepo;
 
     public PatientPortalController(
         AppointmentService appointmentService,
         PaymentService paymentService,
+        AppointmentBillService billService,
         PatientMedicalRecordService medicalRecordService,
-        AuthService authService)
+        AuthService authService,
+        IPatientRepository patientRepo)
     {
         _appointmentService = appointmentService;
         _paymentService = paymentService;
+        _billService = billService;
         _medicalRecordService = medicalRecordService;
         _authService = authService;
+        _patientRepo = patientRepo;
     }
 
     /// <summary>
-    /// Gets the current patient ID from claims
+    /// Gets the current patient ID from claims with fallback lookup
     /// </summary>
-    private int GetPatientId()
+    private async Task<int> GetPatientIdAsync()
     {
         var patientIdClaim = User.FindFirst("PatientId")?.Value;
-        if (!int.TryParse(patientIdClaim, out int patientId))
+        if (!string.IsNullOrEmpty(patientIdClaim) && int.TryParse(patientIdClaim, out int patientId))
         {
-            throw new UnauthorizedAccessException("Patient ID not found in claims");
+            return patientId;
         }
-        return patientId;
+
+        // Fallback: lookup by UserId
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int userId))
+        {
+            var patients = await _patientRepo.GetAllAsync();
+            var patient = patients.FirstOrDefault(p => p.UserId == userId);
+            if (patient != null)
+            {
+                return patient.PatientId;
+            }
+        }
+
+        throw new UnauthorizedAccessException("Patient ID not found in claims");
+    }
+
+    /// <summary>
+    /// Gets the current user ID from claims
+    /// </summary>
+    private int GetUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out int userId))
+        {
+            throw new UnauthorizedAccessException("User ID not found in claims");
+        }
+        return userId;
     }
 
     #region Appointments
@@ -55,7 +88,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var appointments = await _appointmentService.GetByPatientIdAsync(patientId);
             return Ok(appointments);
         }
@@ -73,7 +106,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var appointment = await _appointmentService.GetByIdAsync(appointmentId);
             
             if (appointment == null)
@@ -99,7 +132,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var allAppointments = await _appointmentService.GetByPatientIdAsync(patientId);
             
             var today = DateOnly.FromDateTime(DateTime.Today);
@@ -133,7 +166,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var records = await _medicalRecordService.GetPatientMedicalRecordsAsync(patientId);
             return Ok(records);
         }
@@ -151,7 +184,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var record = await _medicalRecordService.GetPatientMedicalRecordAsync(patientId, medicalRecordId);
             
             if (record == null)
@@ -177,7 +210,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var labTests = await _medicalRecordService.GetPatientLabTestsAsync(patientId);
             return Ok(labTests);
         }
@@ -195,7 +228,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var labTests = await _medicalRecordService.GetPatientCompletedLabTestsAsync(patientId);
             return Ok(labTests);
         }
@@ -213,7 +246,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var labTests = await _medicalRecordService.GetPatientPendingLabTestsAsync(patientId);
             return Ok(labTests);
         }
@@ -235,7 +268,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var payments = await _paymentService.GetPatientPaymentsAsync(patientId);
             return Ok(payments);
         }
@@ -253,7 +286,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var payments = await _paymentService.GetPatientPendingPaymentsAsync(patientId);
             return Ok(payments);
         }
@@ -271,7 +304,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var payments = await _paymentService.GetPatientCompletedPaymentsAsync(patientId);
             return Ok(payments);
         }
@@ -289,7 +322,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var payment = await _paymentService.GetPaymentByIdAsync(paymentId);
             
             if (payment == null)
@@ -315,7 +348,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             
             // Verify the request is for the current patient
             if (request.PatientId != patientId)
@@ -340,6 +373,92 @@ public class PatientPortalController : ControllerBase
 
     #endregion
 
+    #region Appointment Bills
+
+    /// <summary>
+    /// Gets all appointment bills for the current patient
+    /// </summary>
+    [HttpGet("my-bills")]
+    public async Task<IActionResult> GetMyBills()
+    {
+        try
+        {
+            var patientId = await GetPatientIdAsync();
+            var bills = await _billService.GetBillsByPatientIdAsync(patientId);
+            return Ok(bills);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Gets pending bills for the current patient
+    /// </summary>
+    [HttpGet("my-bills/pending")]
+    public async Task<IActionResult> GetMyPendingBills()
+    {
+        try
+        {
+            var patientId = await GetPatientIdAsync();
+            var allBills = await _billService.GetBillsByPatientIdAsync(patientId);
+            var pendingBills = allBills.Where(b => b.Status == "Pending");
+            return Ok(pendingBills);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Gets completed/paid bills for the current patient
+    /// </summary>
+    [HttpGet("my-bills/completed")]
+    public async Task<IActionResult> GetMyCompletedBills()
+    {
+        try
+        {
+            var patientId = await GetPatientIdAsync();
+            var allBills = await _billService.GetBillsByPatientIdAsync(patientId);
+            var completedBills = allBills.Where(b => b.Status == "Paid");
+            return Ok(completedBills);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Gets a specific bill for the current patient
+    /// </summary>
+    [HttpGet("my-bills/{billId}")]
+    public async Task<IActionResult> GetMyBill(int billId)
+    {
+        try
+        {
+            var patientId = await GetPatientIdAsync();
+            var bill = await _billService.GetBillByIdAsync(billId);
+            
+            if (bill == null)
+                return NotFound(new { Message = "Bill not found" });
+            
+            // Verify ownership
+            if (bill.PatientId != patientId)
+                return Forbid();
+
+            return Ok(bill);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
+        }
+    }
+
+    #endregion
+
     #region Prescriptions
 
     /// <summary>
@@ -350,7 +469,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
             var prescription = await _medicalRecordService.GetPatientPrescriptionDetailAsync(patientId, prescriptionId);
 
             if (prescription == null)
@@ -407,7 +526,7 @@ public class PatientPortalController : ControllerBase
     {
         try
         {
-            var patientId = GetPatientId();
+            var patientId = await GetPatientIdAsync();
 
             // Get appointments
             var upcomingAppointments = await _appointmentService.GetByPatientIdAsync(patientId);

@@ -46,11 +46,18 @@ public class JwtTokenService
         };
 
         if (patientId.HasValue)
+        {
             claims.Add(new Claim("PatientId", patientId.Value.ToString()));
+            claims.Add(new Claim(ClaimTypes.Role, roleName)); // Re-add with patientId context
+        }
         if (doctorId.HasValue)
             claims.Add(new Claim("DoctorId", doctorId.Value.ToString()));
         if (staffId.HasValue)
             claims.Add(new Claim("StaffId", staffId.Value.ToString()));
+
+        // Ensure role is always in claims
+        if (!claims.Any(c => c.Type == ClaimTypes.Role))
+            claims.Add(new Claim(ClaimTypes.Role, roleName));
 
         var expiresAt = DateTime.UtcNow.AddMinutes(_expiryMinutes);
 

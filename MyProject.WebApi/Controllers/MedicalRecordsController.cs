@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +34,24 @@ public class MedicalRecordsController : ControllerBase
     {
         var result = await _service.GetByIdAsync(id);
         if (result == null) return NotFound();
+
+        // If patient, verify ownership
+        if (User.IsInRole("Patient"))
+        {
+            var patientIdClaim = User.FindFirst("PatientId")?.Value;
+            if (!int.TryParse(patientIdClaim, out int patientId))
+            {
+                return Unauthorized(new { Message = "Patient ID not found in token" });
+            }
+
+            var record = await _service.GetByIdAndPatientIdAsync(id, patientId);
+            if (record == null)
+            {
+                return Forbid();
+            }
+            return Ok(record);
+        }
+
         return Ok(result);
     }
 
@@ -44,6 +64,7 @@ public class MedicalRecordsController : ControllerBase
     }
 
     [HttpGet("by-patient/{patientId}")]
+    [Authorize(Roles = "Admin,Doctor,Staff")]
     public async Task<IActionResult> GetByPatientId(int patientId)
     {
         var result = await _service.GetByPatientIdAsync(patientId);

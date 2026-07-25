@@ -18,4 +18,6 @@ public partial class Staff
     public DateTime CreatedAt { get; set; }
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+
+    public virtual ICollection<AppointmentBill> AppointmentBills { get; set; } = new List<AppointmentBill>();
 }

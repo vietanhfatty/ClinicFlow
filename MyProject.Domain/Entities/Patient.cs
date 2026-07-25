@@ -30,4 +30,6 @@ public partial class Patient
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+    public virtual ICollection<AppointmentBill> AppointmentBills { get; set; } = new List<AppointmentBill>();
 }

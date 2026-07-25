@@ -37,6 +37,8 @@ public partial class HospitalManagementDbContext : DbContext
 
     public virtual DbSet<Payment> Payments { get; set; }
 
+    public virtual DbSet<AppointmentBill> AppointmentBills { get; set; }
+
     public virtual DbSet<Notification> Notifications { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -283,6 +285,39 @@ public partial class HospitalManagementDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Notifications_Users");
+        });
+
+        modelBuilder.Entity<AppointmentBill>(entity =>
+        {
+            entity.ToTable("AppointmentBills");
+
+            entity.HasKey(e => e.BillId);
+
+            entity.Property(e => e.BillId).HasColumnName("BillId");
+            entity.Property(e => e.AppointmentId).HasColumnName("AppointmentId");
+            entity.Property(e => e.PatientId).HasColumnName("PatientId");
+            entity.Property(e => e.StaffId).HasColumnName("StaffId");
+            entity.Property(e => e.ExaminationFee).HasColumnType("decimal(18, 2)").HasColumnName("ExaminationFee");
+            entity.Property(e => e.LabTestFee).HasColumnType("decimal(18, 2)").HasColumnName("LabTestFee");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)").HasColumnName("TotalAmount");
+            entity.Property(e => e.Status).HasMaxLength(20).IsUnicode(false).HasDefaultValue("Pending").HasColumnName("Status");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())").HasColumnType("datetime").HasColumnName("CreatedAt");
+            entity.Property(e => e.PaidAt).HasColumnType("datetime").HasColumnName("PaidAt");
+            entity.Property(e => e.Notes).HasMaxLength(500).HasColumnName("Notes");
+
+            entity.HasOne(d => d.Appointment).WithMany(p => p.AppointmentBills)
+                .HasForeignKey(d => d.AppointmentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AppointmentBills_Appointments");
+
+            entity.HasOne(d => d.Patient).WithMany(p => p.AppointmentBills)
+                .HasForeignKey(d => d.PatientId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AppointmentBills_Patients");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.AppointmentBills)
+                .HasForeignKey(d => d.StaffId)
+                .HasConstraintName("FK_AppointmentBills_Staff");
         });
 
         OnModelCreatingPartial(modelBuilder);

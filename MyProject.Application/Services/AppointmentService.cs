@@ -16,6 +16,7 @@ public class AppointmentService
     private readonly IPatientRepository _patientRepo;
     private readonly IDoctorRepository _doctorRepo;
     private readonly IUserRepository _userRepo;
+    private readonly IAppointmentLabTestRepository _labTestRepo;
     private readonly NotificationService _notificationService;
     private readonly QueueSettings _queueSettings;
 
@@ -24,6 +25,7 @@ public class AppointmentService
         IPatientRepository patientRepo,
         IDoctorRepository doctorRepo,
         IUserRepository userRepo,
+        IAppointmentLabTestRepository labTestRepo,
         NotificationService notificationService,
         IOptions<QueueSettings> queueSettings)
     {
@@ -31,6 +33,7 @@ public class AppointmentService
         _patientRepo = patientRepo;
         _doctorRepo = doctorRepo;
         _userRepo = userRepo;
+        _labTestRepo = labTestRepo;
         _notificationService = notificationService;
         _queueSettings = queueSettings.Value;
     }
@@ -284,6 +287,15 @@ public class AppointmentService
         if (appointment.Status != "Confirmed" && appointment.Status != "InProgress")
         {
             throw new InvalidOperationException($"Cannot complete appointment. Current status is '{appointment.Status}' but must be 'Confirmed' or 'InProgress'.");
+        }
+
+        // Validate: all lab tests must be completed before finishing appointment
+        var labTests = await _labTestRepo.GetByAppointmentIdAsync(id);
+        var pendingTests = labTests.Where(lt => lt.Status != "Completed").ToList();
+        if (pendingTests.Any())
+        {
+            var pendingNames = string.Join(", ", pendingTests.Select(lt => lt.LabTestService?.ServiceName ?? $"Test #{lt.AppointmentLabTestId}"));
+            throw new InvalidOperationException($"Cannot complete appointment. There are {pendingTests.Count} pending lab test(s): {pendingNames}. Please complete all lab tests first.");
         }
 
         appointment.Status = "Completed";

@@ -85,6 +85,23 @@ public class MedicalRecordRepository : IMedicalRecordRepository
             .ToListAsync();
     }
 
+    public async Task<MedicalRecord?> GetByIdAndPatientIdAsync(int medicalRecordId, int patientId)
+    {
+        return await _context.MedicalRecords
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.Patient)
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.Doctor)
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.AppointmentLabTests)
+                .ThenInclude(lt => lt.LabTestService)
+            .Include(mr => mr.Appointment)
+                .ThenInclude(a => a.AppointmentLabTests)
+                .ThenInclude(lt => lt.Doctor)
+            .Include(mr => mr.Prescriptions)
+            .FirstOrDefaultAsync(mr => mr.MedicalRecordId == medicalRecordId && mr.Appointment.PatientId == patientId);
+    }
+
     public async Task AddAsync(MedicalRecord medicalRecord)
     {
         _context.MedicalRecords.Add(medicalRecord);
